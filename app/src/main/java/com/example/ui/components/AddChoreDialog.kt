@@ -60,9 +60,9 @@ fun AddChoreDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(36.dp))
+                .clip(RoundedCornerShape(32.dp))
                 .background(CloudWhite)
-                .border(2.5.dp, MintGreenDark, RoundedCornerShape(36.dp))
+                .border(2.dp, MintGreenDark, RoundedCornerShape(32.dp))
                 .padding(20.dp)
         ) {
             Column(
@@ -78,13 +78,13 @@ fun AddChoreDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "💭", fontSize = 22.sp)
+                        Text(text = "✨", fontSize = 20.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Add Daily Life Task",
-                            fontSize = 15.sp,
+                            text = "Add a Task",
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Black,
-                            color = MintGreenDark
+                            color = SlateText
                         )
                     }
 
@@ -106,12 +106,14 @@ fun AddChoreDialog(
                 OutlinedTextField(
                     value = rawText,
                     onValueChange = { rawText = it },
-                    label = { Text("What needs doing? (e.g., Fold wardrobe)") },
-                    shape = RoundedCornerShape(18.dp),
+                    label = { Text("What task would you like to do?") },
+                    placeholder = { Text("e.g. Fold clean laundry") },
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MintGreenDark,
-                        unfocusedBorderColor = SlateLight
+                        unfocusedBorderColor = MintGreenLight
                     )
                 )
 
@@ -122,8 +124,9 @@ fun AddChoreDialog(
                     text = "CATEGORY",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
-                    letterSpacing = 1.2.sp,
-                    color = SlateMuted
+                    letterSpacing = 1.1.sp,
+                    color = SlateMuted,
+                    modifier = Modifier.align(Alignment.Start)
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -137,13 +140,13 @@ fun AddChoreDialog(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(38.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .height(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
                                 .background(if (isSelected) MintGreenPrimary else SlateLight.copy(alpha = 0.4f))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 0.dp,
                                     color = if (isSelected) MintGreenDark else Color.Transparent,
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(10.dp)
                                 )
                                 .clickable {
                                     selectedCategory = cat
@@ -151,7 +154,7 @@ fun AddChoreDialog(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "$emoji $cat", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
+                            Text(text = "$emoji $cat", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
                         }
                     }
                 }
@@ -167,13 +170,13 @@ fun AddChoreDialog(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(38.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .height(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
                                 .background(if (isSelected) MintGreenPrimary else SlateLight.copy(alpha = 0.4f))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 0.dp,
                                     color = if (isSelected) MintGreenDark else Color.Transparent,
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(10.dp)
                                 )
                                 .clickable {
                                     selectedCategory = cat
@@ -181,7 +184,7 @@ fun AddChoreDialog(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "$emoji $cat", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
+                            Text(text = "$emoji $cat", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
                         }
                     }
                 }
@@ -190,11 +193,12 @@ fun AddChoreDialog(
 
                 // Difficulty Selector
                 Text(
-                    text = "DIFFICULTY LADDER & XP REWARD",
+                    text = "DIFFICULTY LEVEL",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
-                    letterSpacing = 1.2.sp,
-                    color = SlateMuted
+                    letterSpacing = 1.1.sp,
+                    color = SlateMuted,
+                    modifier = Modifier.align(Alignment.Start)
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -219,12 +223,12 @@ fun AddChoreDialog(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
+                                .clip(RoundedCornerShape(12.dp))
                                 .background(if (isSelected) bgColor else SlateLight.copy(alpha = 0.4f))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 0.dp,
                                     color = if (isSelected) borderColor else Color.Transparent,
-                                    shape = RoundedCornerShape(14.dp)
+                                    shape = RoundedCornerShape(12.dp)
                                 )
                                 .clickable {
                                     selectedDifficulty = diff
@@ -257,28 +261,27 @@ fun AddChoreDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (requiresProof) ChoicePinkBg else SlateLight.copy(alpha = 0.4f))
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (requiresProof) ChoicePinkBg else SlateLight.copy(alpha = 0.35f))
                         .clickable {
                             requiresProof = !requiresProof
                             SoundEffectManager.playPop()
                         }
-                        .padding(12.dp),
+                        .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "📸", fontSize = 20.sp)
+                    Text(text = "📸", fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Require Before & After Photo Proof",
+                            text = "Require Photo Proof",
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = FontWeight.Bold,
                             color = SlateText
                         )
                         Text(
-                            text = "Allows friends to verify with +150 bonus XP!",
+                            text = "Add before & after photos when completed",
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
                             color = SlateMuted
                         )
                     }
@@ -291,10 +294,11 @@ fun AddChoreDialog(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 PoppableButton(
-                    text = "Post Task to Oasis ✨",
+                    text = "Add Task ✨",
                     onClick = {
-                        if (rawText.isNotBlank()) {
-                            onSubmit(rawText, selectedCategory, selectedMember, selectedDifficulty, requiresProof, isSoloTask)
+                        val clean = rawText.trim()
+                        if (clean.isNotBlank()) {
+                            onSubmit(clean, selectedCategory, selectedMember, selectedDifficulty, requiresProof, isSoloTask)
                         }
                     },
                     backgroundColor = MintGreenPrimary,

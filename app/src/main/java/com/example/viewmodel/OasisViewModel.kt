@@ -9,6 +9,7 @@ import com.example.audio.SoundEffectManager
 import com.example.data.local.AppDatabase
 import com.example.data.model.*
 import com.example.data.repository.OasisRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -107,6 +108,10 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
     init {
         val db = AppDatabase.getDatabase(application, viewModelScope)
         repository = OasisRepository(db.oasisDao())
+
+        viewModelScope.launch(Dispatchers.IO) {
+            AppDatabase.seedIfEmpty(db.oasisDao())
+        }
 
         allChores = repository.allChores.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         coreFiveChores = repository.coreFiveChores.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -428,6 +433,14 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
             SoundEffectManager.playFanfare()
             _confettiTrigger.value += 1
             closeSquadDialog()
+        }
+    }
+
+    fun joinMatchedSquad(squadName: String, squadCode: String, matchedMembers: List<GroupMember>) {
+        viewModelScope.launch {
+            repository.joinMatchedSquad(squadName, squadCode, matchedMembers)
+            SoundEffectManager.playFanfare()
+            _confettiTrigger.value += 2
         }
     }
 

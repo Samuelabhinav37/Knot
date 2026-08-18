@@ -123,14 +123,6 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
                         SoundEffectManager.playPop()
                     }
                 )
-            },
-            floatingActionButton = {
-                // Floating Thought-Bubble / Task Ingest Button
-                if (selectedTab == 0 || selectedTab == 1) {
-                    FloatingThoughtBubbleButton(
-                        onClick = { viewModel.openThoughtBubbleDialog() }
-                    )
-                }
             }
         ) { innerPadding ->
             Box(
@@ -165,11 +157,12 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
                         onGoToParadise = { viewModel.setSelectedTab(3) }
                     )
                     1 -> PairwiseSortScreen(
-                        matchup = matchup,
-                        totalChoresCount = allChores.size,
-                        onChooseCard = { chosenA -> viewModel.choosePairwiseCard(chosenA) },
-                        onSkipMatchup = { viewModel.refreshPairwiseMatchup() },
-                        onOpenAddChore = { viewModel.openThoughtBubbleDialog() }
+                        userProfile = userProfile,
+                        members = members,
+                        onJoinSquadWithCode = { code -> viewModel.joinSquadByCode(code) },
+                        onJoinMatchedSquad = { squadName, squadCode, matchedMembers ->
+                            viewModel.joinMatchedSquad(squadName, squadCode, matchedMembers)
+                        }
                     )
                     2 -> SkillsTutorialsScreen(
                         tutorials = tutorials,
@@ -272,31 +265,6 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
         if (showTourDialog) {
             UITourDialog(
                 onDismiss = { viewModel.closeTourDialog() }
-            )
-        }
-    }
-}
-
-@Composable
-private fun FloatingThoughtBubbleButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .squishClickable(onClick = onClick)
-            .shadow(6.dp, RoundedCornerShape(32.dp), spotColor = MintGreenBorderBottom.copy(alpha = 0.5f))
-            .clip(RoundedCornerShape(32.dp))
-            .background(MintGreenPrimary)
-            .border(2.dp, MintGreenBorderBottom, RoundedCornerShape(32.dp))
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "💭", fontSize = 18.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Post Thought Bubble",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Black,
-                color = MintGreenDark
             )
         }
     }

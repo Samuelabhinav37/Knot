@@ -69,24 +69,19 @@ abstract class AppDatabase : RoomDatabase() {
                     "pastel_oasis_database"
                 )
                 .fallbackToDestructiveMigration()
-                .addCallback(DatabaseCallback(scope))
                 .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private class DatabaseCallback(private val scope: CoroutineScope) : RoomDatabase.Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                INSTANCE?.let { database ->
-                    scope.launch(Dispatchers.IO) {
-                        populateInitialData(database.oasisDao())
-                    }
-                }
-            }
+        suspend fun seedIfEmpty(dao: OasisDao) {
+            val existing = dao.getUserProfileSync()
+            if (existing != null) return
+            populateInitialData(dao)
+        }
 
-            private suspend fun populateInitialData(dao: OasisDao) {
+        private suspend fun populateInitialData(dao: OasisDao) {
                 // Seed User Profile
                 dao.saveUserProfile(
                     UserProfile(
@@ -167,7 +162,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // Seed Day-to-Day Life Tasks & Chores across common human routines + difficulty tiers
                 val defaultChores = listOf(
                     ChoreItem(
-                        text = "Master the KonMari T-Shirt Fold Stack",
+                        text = "Fold clean clothes neatly",
                         iconCategory = "ORGANIZING",
                         postedBy = "Mia",
                         score = 1250,
@@ -179,7 +174,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 4
                     ),
                     ChoreItem(
-                        text = "Whip up a 15-Minute Veggie Stir-Fry Prep",
+                        text = "Prepare a healthy fresh lunch",
                         iconCategory = "COOKING",
                         postedBy = "Kai",
                         score = 1210,
@@ -191,7 +186,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 4
                     ),
                     ChoreItem(
-                        text = "Hydrate & Mist the Indoor Balcony Jungle",
+                        text = "Water indoor houseplants",
                         iconCategory = "PLANTS",
                         postedBy = "Leo",
                         score = 1170,
@@ -203,7 +198,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 3
                     ),
                     ChoreItem(
-                        text = "Deep Sparkle Kitchen Sink & Counters",
+                        text = "Wipe kitchen countertops",
                         iconCategory = "CLEANING",
                         postedBy = "Mia",
                         score = 1110,
@@ -213,7 +208,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 3
                     ),
                     ChoreItem(
-                        text = "10-Minute Desk Declutter & Wire Organization",
+                        text = "Tidy up your work desk",
                         iconCategory = "ORGANIZING",
                         postedBy = "Chloe",
                         score = 1060,
@@ -223,7 +218,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 2
                     ),
                     ChoreItem(
-                        text = "Tighten Loose Door Hinges & Fix Squeaks",
+                        text = "Tighten loose door handles",
                         iconCategory = "FIXING",
                         postedBy = "Sam",
                         score = 1020,
@@ -233,7 +228,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 2
                     ),
                     ChoreItem(
-                        text = "Bake Golden Honey Sourdough Loaf",
+                        text = "Bake fresh honey bread",
                         iconCategory = "COOKING",
                         postedBy = "Kai",
                         score = 990,
@@ -245,7 +240,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 2
                     ),
                     ChoreItem(
-                        text = "5-Minute Evening Mindful Breathing & Hydration",
+                        text = "Take 5 deep mindful breaths",
                         iconCategory = "WELLNESS",
                         postedBy = "Chloe",
                         score = 950,
@@ -255,7 +250,7 @@ abstract class AppDatabase : RoomDatabase() {
                         matchupTotal = 1
                     ),
                     ChoreItem(
-                        text = "Fluff, Wash & Fold Bedding Linens",
+                        text = "Wash and change bed sheets",
                         iconCategory = "LAUNDRY",
                         postedBy = "Mia",
                         score = 920,
@@ -263,6 +258,16 @@ abstract class AppDatabase : RoomDatabase() {
                         requiresPhotoProof = false,
                         matchupWins = 0,
                         matchupTotal = 1
+                    ),
+                    ChoreItem(
+                        text = "Take out the recycling bin",
+                        iconCategory = "CLEANING",
+                        postedBy = "Sam",
+                        score = 900,
+                        difficulty = TaskDifficulty.EASY,
+                        requiresPhotoProof = false,
+                        matchupWins = 0,
+                        matchupTotal = 0
                     )
                 )
                 dao.insertChores(defaultChores)
@@ -478,5 +483,4 @@ abstract class AppDatabase : RoomDatabase() {
                 )
             }
         }
-    }
 }

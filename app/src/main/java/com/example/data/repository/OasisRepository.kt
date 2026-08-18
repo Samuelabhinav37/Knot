@@ -338,6 +338,29 @@ class OasisRepository(private val dao: OasisDao) {
         )
     }
 
+    suspend fun joinMatchedSquad(squadName: String, squadCode: String, matchedMembers: List<GroupMember>) {
+        val profile = dao.getUserProfileSync() ?: return
+        dao.saveUserProfile(
+            profile.copy(
+                squadCode = squadCode.uppercase(),
+                squadName = squadName,
+                currentMode = "SQUAD"
+            )
+        )
+        val currentMember = GroupMember(
+            name = profile.username,
+            avatarEmoji = profile.avatarEmoji,
+            avatarColorHex = 0xFFFFB6C1,
+            personalityArchetype = profile.personalityArchetype,
+            primaryInterest = "Home & Routine",
+            tasksCompletedCount = 0,
+            isCurrentActiveUser = true
+        )
+        val membersList = mutableListOf(currentMember)
+        membersList.addAll(matchedMembers)
+        dao.insertMembers(membersList)
+    }
+
     suspend fun setMode(mode: String) {
         val profile = dao.getUserProfileSync() ?: return
         dao.saveUserProfile(profile.copy(currentMode = mode))
