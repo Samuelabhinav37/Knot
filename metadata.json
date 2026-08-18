@@ -1,6 +1,6 @@
 {
-  "name": "Pastel Oasis",
-  "description": "A whimsical pastel chore gamifier featuring thought bubble ingest, cloud-card pairwise sorting, a hatching egg with team rewards, and a vibrant pet paradise terrarium.",
+  "name": "Oasis",
+  "description": "A calm, composed corporate workspace for daily routines, squad goals, cadre team collaboration, and zen productivity guides.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

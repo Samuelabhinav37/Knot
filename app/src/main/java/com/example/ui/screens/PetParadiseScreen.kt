@@ -1,72 +1,70 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audio.SoundEffectManager
 import com.example.data.model.BadgeItem
+import com.example.data.model.GroupMember
 import com.example.data.model.HatchedPet
 import com.example.data.model.PetAccessory
-import com.example.data.model.PetRarity
-import com.example.ui.components.AnimatedCreature
-import com.example.ui.components.PetBuddyPlayDialog
-import com.example.ui.components.PoppableButton
-import com.example.ui.components.squishClickable
+import com.example.data.model.UserProfile
 import com.example.ui.theme.*
 
 @Composable
 fun PetParadiseScreen(
-    pets: List<HatchedPet>,
-    badges: List<BadgeItem>,
-    currentStreak: Int,
-    onEquipAccessory: (petId: Long, accessory: PetAccessory) -> Unit,
-    onFeedTreat: (treat: String) -> Unit,
-    onPetBuddy: () -> Unit,
-    onOpenBadgesGallery: () -> Unit,
+    userProfile: UserProfile? = null,
+    members: List<GroupMember> = emptyList(),
+    pets: List<HatchedPet> = emptyList(),
+    badges: List<BadgeItem> = emptyList(),
+    currentStreak: Int = 5,
+    onEquipAccessory: (petId: Long, accessory: PetAccessory) -> Unit = { _, _ -> },
+    onFeedTreat: (treat: String) -> Unit = {},
+    onPetBuddy: () -> Unit = {},
+    onOpenBadgesGallery: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var buddyPetForPlay by remember { mutableStateOf<HatchedPet?>(null) }
+    val userName = userProfile?.username ?: "Alex Morgan"
+    val userArchetype = userProfile?.personalityArchetype ?: "Operations Strategist"
+    val squadName = userProfile?.squadName ?: "Cadre Unit Alpha"
+    val squadCode = userProfile?.squadCode ?: "CADRE-8X9"
 
-    val unlockedBadgesCount = badges.count { it.unlocked }
-    val totalBadgesCount = badges.size.coerceAtLeast(6)
-    val nextThreshold = if (unlockedBadgesCount < 3) 3 else 6
+    var soundEnabled by remember { mutableStateOf(true) }
+    var dailyReminders by remember { mutableStateOf(true) }
+    var squadSyncNotifs by remember { mutableStateOf(true) }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentPadding = PaddingValues(bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .background(CorporateBg)
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top Header
+        // Header with Name & Settings Icon on Top Right
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -75,443 +73,377 @@ fun PetParadiseScreen(
             ) {
                 Column {
                     Text(
-                        text = "Pet Paradise 🌸",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MintGreenDark
+                        text = "Account Profile",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
                     Text(
-                        text = "Your achievement badges & hatched companions",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = SlateMuted
+                        text = "Preferences, team status, and system settings",
+                        fontSize = 13.sp,
+                        color = TextMuted
                     )
                 }
 
-                // Streak Pill
-                Box(
+                // Settings Button on Top Right
+                IconButton(
+                    onClick = {
+                        SoundEffectManager.playPop()
+                        onOpenSettings()
+                    },
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(EggYellowMid)
-                        .border(1.dp, EggAmber, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(CorporateSurface)
+                        .border(1.dp, CorporateCardBorder, RoundedCornerShape(10.dp))
                 ) {
-                    Text(
-                        text = "🔥 $currentStreak Streak",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        color = AmberTextDark
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
 
-        // Digital Terrarium Canvas Area
+        // Profile Identity Card
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .shadow(4.dp, RoundedCornerShape(24.dp), spotColor = MintGreenDark.copy(alpha = 0.2f))
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                ChoiceSkyBg,
-                                MintGreenLight,
-                                Color(0xFFE6FAF1)
-                            )
-                        )
-                    )
-                    .border(2.dp, MintGreenDark, RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CorporateSurface)
+                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                    .padding(18.dp)
             ) {
-                TerrariumBackdrop()
-
-                // Living Pets in Terrarium
-                pets.forEach { pet ->
-                    val xRatio = pet.xPosRatio.coerceIn(0.1f, 0.82f)
-                    val yRatio = pet.yPosRatio.coerceIn(0.15f, 0.6f)
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Profile Initials / Avatar Circle
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                start = (xRatio * 260).dp,
-                                top = (yRatio * 130).dp
-                            )
+                            .size(54.dp)
+                            .clip(CircleShape)
+                            .background(CorporatePrimary),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    buddyPetForPlay = pet
-                                    SoundEffectManager.playPop()
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                AnimatedCreature(
-                                    species = pet.species,
-                                    rarity = pet.rarity,
-                                    accessory = pet.accessory,
-                                    size = 58.dp
+                        Text(
+                            text = userName.take(2).uppercase(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = userName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = userArchetype,
+                            fontSize = 13.sp,
+                            color = TextMuted
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(CorporateAccentBlueLight)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = squadName,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = CorporateAccentBlue
                                 )
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(CloudWhite.copy(alpha = 0.9f))
-                                        .border(1.dp, MintGreenDark, RoundedCornerShape(6.dp))
-                                        .padding(horizontal = 6.dp, vertical = 1.dp)
-                                ) {
-                                    Text(
-                                        text = pet.name,
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = MintGreenDark
-                                    )
-                                }
                             }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "• Code: $squadCode",
+                                fontSize = 11.sp,
+                                color = TextMuted
+                            )
                         }
                     }
                 }
             }
         }
 
-        // ==========================================================
-        // 1. BADGES SECTION (FIRST)
-        // ==========================================================
+        // Key Account Metrics
         item {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🏆", fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Badges & Achievements",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Black,
-                            color = SlateText
-                        )
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                AccountMetricCard(
+                    label = "Consistency",
+                    value = "${currentStreak}d",
+                    caption = "Daily streak",
+                    modifier = Modifier.weight(1f)
+                )
+                AccountMetricCard(
+                    label = "Completed",
+                    value = "28",
+                    caption = "Tasks closed",
+                    modifier = Modifier.weight(1f)
+                )
+                AccountMetricCard(
+                    label = "Cadre Members",
+                    value = "${members.size.coerceAtLeast(3)}",
+                    caption = "In your unit",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
 
-                    Text(
-                        text = "$unlockedBadgesCount / $totalBadgesCount Unlocked",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AmberTextDark
+        // Section: General Preferences
+        item {
+            Text(
+                text = "Preferences",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+        }
+
+        // Preferences Card with Clean Toggles
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CorporateSurface)
+                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    PreferenceToggleRow(
+                        icon = Icons.Default.Notifications,
+                        title = "Daily Routine Reminders",
+                        subtitle = "Receive morning operational check notifications",
+                        isChecked = dailyReminders,
+                        onCheckedChange = { dailyReminders = it }
                     )
-                }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Divider(color = CorporateCardBorder, thickness = 0.8.dp)
 
-                // Milestone Progress Banner
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(EggYellowLight)
-                        .border(1.dp, EggAmber, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "✨", fontSize = 14.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "SUMMON PROGRESS: $unlockedBadgesCount / $nextThreshold BADGES",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 0.8.sp,
-                                color = AmberTextDark
-                            )
-                            Text(
-                                text = if (unlockedBadgesCount < 3) "Unlock 3 badges to summon a rare companion!" else "Unlock 6 badges for the legendary dragon!",
-                                fontSize = 10.sp,
-                                color = SlateMuted
-                            )
-                        }
-                    }
-                }
-            }
-        }
+                    PreferenceToggleRow(
+                        icon = Icons.Default.Person,
+                        title = "Squad Synchronization",
+                        subtitle = "Notify when team members complete shared goals",
+                        isChecked = squadSyncNotifs,
+                        onCheckedChange = { squadSyncNotifs = it }
+                    )
 
-        // Badges Grid Items
-        item {
-            val chunkedBadges = badges.chunked(2)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                chunkedBadges.forEach { pair ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        pair.forEach { badge ->
-                            BadgeCard(
-                                badge = badge,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        if (pair.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
+                    Divider(color = CorporateCardBorder, thickness = 0.8.dp)
 
-        // ==========================================================
-        // 2. HATCHED COMPANIONS SECTION (SECOND)
-        // ==========================================================
-        item {
-            Column {
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🐣", fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Hatched Companions (${pets.size})",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Black,
-                            color = SlateText
-                        )
-                    }
-
-                    Text(
-                        text = "Tap to feed & play",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MintGreenDark
+                    PreferenceToggleRow(
+                        icon = Icons.Default.VolumeUp,
+                        title = "Audio Feedback",
+                        subtitle = "Play subtle sound clicks on task completion",
+                        isChecked = soundEnabled,
+                        onCheckedChange = { soundEnabled = it }
                     )
                 }
             }
         }
 
-        // Hatched Pets Grid Items
+        // Section: System & Support
         item {
-            val chunkedPets = pets.chunked(2)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                chunkedPets.forEach { pair ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        pair.forEach { pet ->
-                            PetArchiveCard(
-                                pet = pet,
-                                onClick = {
-                                    buddyPetForPlay = pet
-                                    SoundEffectManager.playPop()
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        if (pair.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
+            Text(
+                text = "System & Support",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+        }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CorporateSurface)
+                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    SystemLinkRow(
+                        icon = Icons.Default.Palette,
+                        title = "Appearance & Layout",
+                        onClick = { onOpenSettings() }
+                    )
+
+                    Divider(color = CorporateCardBorder, thickness = 0.8.dp)
+
+                    SystemLinkRow(
+                        icon = Icons.Default.Security,
+                        title = "Data & Privacy",
+                        onClick = { onOpenSettings() }
+                    )
                 }
             }
         }
-    }
-
-    // Buddy Play Interactive Modal
-    buddyPetForPlay?.let { pet ->
-        PetBuddyPlayDialog(
-            pet = pet,
-            onDismiss = { buddyPetForPlay = null },
-            onFeedTreat = { treat ->
-                onFeedTreat(treat)
-            },
-            onPetBuddy = onPetBuddy,
-            onEquipAccessory = { acc ->
-                onEquipAccessory(pet.id, acc)
-                buddyPetForPlay = pet.copy(accessory = acc)
-            }
-        )
     }
 }
 
 @Composable
-private fun BadgeCard(
-    badge: BadgeItem,
+private fun AccountMetricCard(
+    label: String,
+    value: String,
+    caption: String,
     modifier: Modifier = Modifier
 ) {
-    val isUnlocked = badge.unlocked
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(if (isUnlocked) CloudWhite else Color(0xFFF6F8F7))
-            .border(
-                width = 1.5.dp,
-                color = if (isUnlocked) EggAmber else SlateLight,
-                shape = RoundedCornerShape(18.dp)
-            )
+            .clip(RoundedCornerShape(14.dp))
+            .background(CorporateSurface)
+            .border(1.dp, CorporateCardBorder, RoundedCornerShape(14.dp))
             .padding(12.dp)
     ) {
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(if (isUnlocked) EggYellowMid else Color(0xFFE8ECE9)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isUnlocked) {
-                        Text(text = badge.iconEmoji, fontSize = 18.sp)
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Locked",
-                            tint = SlateMuted,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-
-                if (isUnlocked) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(EggYellowLight)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "Tier ${badge.badgeTier}",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            color = AmberTextDeep
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Text(
-                text = badge.title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isUnlocked) SlateText else SlateMuted
+                text = label,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextMuted
             )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = badge.description,
+                text = value,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = caption,
                 fontSize = 10.sp,
-                lineHeight = 13.sp,
-                color = SlateMuted,
-                maxLines = 2
+                color = TextMuted
             )
         }
     }
 }
 
 @Composable
-private fun TerrariumBackdrop() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        // Floating pastel clouds
-        drawCircle(color = Color.White.copy(alpha = 0.85f), radius = 18f, center = Offset(50f, 30f))
-        drawCircle(color = Color.White.copy(alpha = 0.85f), radius = 24f, center = Offset(75f, 26f))
-        drawCircle(color = Color.White.copy(alpha = 0.85f), radius = 16f, center = Offset(100f, 32f))
+private fun PreferenceToggleRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(CorporateBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
 
-        drawCircle(color = Color.White.copy(alpha = 0.75f), radius = 14f, center = Offset(size.width - 70f, 40f))
-        drawCircle(color = Color.White.copy(alpha = 0.75f), radius = 20f, center = Offset(size.width - 48f, 36f))
+            Spacer(modifier = Modifier.width(12.dp))
 
-        // Soft Green Hills at bottom
-        val hillPath1 = Path().apply {
-            moveTo(0f, size.height)
-            lineTo(0f, size.height - 50f)
-            cubicTo(size.width * 0.3f, size.height - 75f, size.width * 0.7f, size.height - 35f, size.width, size.height - 55f)
-            lineTo(size.width, size.height)
-            close()
+            Column {
+                Text(
+                    text = title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+                Text(
+                    text = subtitle,
+                    fontSize = 11.sp,
+                    color = TextMuted
+                )
+            }
         }
-        drawPath(hillPath1, MintGreenPrimary.copy(alpha = 0.7f))
 
-        val hillPath2 = Path().apply {
-            moveTo(0f, size.height)
-            lineTo(0f, size.height - 30f)
-            cubicTo(size.width * 0.4f, size.height - 20f, size.width * 0.6f, size.height - 60f, size.width, size.height - 30f)
-            lineTo(size.width, size.height)
-            close()
-        }
-        drawPath(hillPath2, Color(0xFF8CE0BE).copy(alpha = 0.85f))
-
-        // Tiny Sparkling Terrarium Pond
-        drawOval(
-            color = SkyBlue.copy(alpha = 0.8f),
-            topLeft = Offset(size.width * 0.45f, size.height - 24f),
-            size = Size(80f, 18f)
+        Switch(
+            checked = isChecked,
+            onCheckedChange = {
+                SoundEffectManager.playPop()
+                onCheckedChange(it)
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = CorporatePrimary,
+                uncheckedThumbColor = Color.White,
+                uncheckedTrackColor = CorporateCardBorder
+            )
         )
     }
 }
 
 @Composable
-private fun PetArchiveCard(pet: HatchedPet, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val isLegendary = (pet.rarity == PetRarity.LEGENDARY)
-
-    Box(
-        modifier = modifier
+private fun SystemLinkRow(
+    icon: ImageVector,
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .squishClickable(onClick = onClick)
-            .shadow(2.dp, RoundedCornerShape(18.dp), spotColor = MintGreenDark.copy(alpha = 0.15f))
-            .clip(RoundedCornerShape(18.dp))
-            .background(if (isLegendary) CloudWhite else Color(0xFFF9FBFA))
-            .border(
-                width = 1.5.dp,
-                color = if (isLegendary) EggAmber else SlateLight,
-                shape = RoundedCornerShape(18.dp)
-            )
-            .padding(10.dp)
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            AnimatedCreature(
-                species = pet.species,
-                rarity = pet.rarity,
-                accessory = pet.accessory,
-                size = 54.dp
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = pet.name,
-                fontWeight = FontWeight.Black,
-                fontSize = 12.sp,
-                color = SlateText
-            )
-
-            Text(
-                text = if (isLegendary) "👑 Legendary" else "🐾 Companion",
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isLegendary) AmberTextDark else SlateMuted
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(CorporateBg),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = "❤️ ${pet.happinessLevel}%", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = ChoicePinkText)
-                Text(text = "🍗 ${pet.hungerLevel}%", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = AmberTextDark)
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
             }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
         }
+
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = TextDisabled,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }

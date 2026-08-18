@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,30 +38,28 @@ fun AddChoreDialog(
     ) -> Unit
 ) {
     var rawText by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("ORGANIZING") }
-    var selectedMember by remember { mutableStateOf(members.firstOrNull { it.isCurrentActiveUser }?.name ?: "Mia") }
+    var selectedCategory by remember { mutableStateOf("OPERATIONS") }
+    var selectedMember by remember { mutableStateOf(members.firstOrNull { it.isCurrentActiveUser }?.name ?: "Alex") }
     var selectedDifficulty by remember { mutableStateOf(TaskDifficulty.EASY) }
     var requiresProof by remember { mutableStateOf(false) }
     var isSoloTask by remember { mutableStateOf(false) }
 
     val categories = listOf(
-        Pair("🧺", "ORGANIZING"),
-        Pair("🍳", "COOKING"),
-        Pair("🌿", "PLANTS"),
-        Pair("🧹", "CLEANING"),
-        Pair("🧘", "WELLNESS"),
-        Pair("🛠️", "FIXING"),
-        Pair("🐾", "PETS"),
-        Pair("👕", "LAUNDRY")
+        "OPERATIONS",
+        "PLANNING",
+        "ORGANIZING",
+        "DEVELOPMENT",
+        "REVIEW",
+        "COMMUNICATION"
     )
 
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(32.dp))
-                .background(CloudWhite)
-                .border(2.dp, MintGreenDark, RoundedCornerShape(32.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .background(CorporateSurface)
+                .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
                 .padding(20.dp)
         ) {
             Column(
@@ -77,14 +74,17 @@ fun AddChoreDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "✨", fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Column {
                         Text(
-                            text = "Add a Task",
+                            text = "Add Daily Task",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Black,
-                            color = SlateText
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Create a structured operational check",
+                            fontSize = 12.sp,
+                            color = TextMuted
                         )
                     }
 
@@ -95,109 +95,89 @@ fun AddChoreDialog(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = SlateMuted
+                            tint = TextMuted
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 // Task Input Field
                 OutlinedTextField(
                     value = rawText,
                     onValueChange = { rawText = it },
-                    label = { Text("What task would you like to do?") },
-                    placeholder = { Text("e.g. Fold clean laundry") },
-                    shape = RoundedCornerShape(16.dp),
+                    label = { Text("Task Description") },
+                    placeholder = { Text("e.g. Audit weekly deliverables") },
+                    shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MintGreenDark,
-                        unfocusedBorderColor = MintGreenLight
+                        focusedBorderColor = CorporatePrimary,
+                        unfocusedBorderColor = CorporateCardBorder
                     )
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Category Selector
                 Text(
                     text = "CATEGORY",
                     fontSize = 10.sp,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 1.1.sp,
-                    color = SlateMuted,
+                    color = TextMuted,
                     modifier = Modifier.align(Alignment.Start)
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    categories.take(4).forEach { (emoji, cat) ->
-                        val isSelected = (selectedCategory == cat)
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) MintGreenPrimary else SlateLight.copy(alpha = 0.4f))
-                                .border(
-                                    width = if (isSelected) 1.5.dp else 0.dp,
-                                    color = if (isSelected) MintGreenDark else Color.Transparent,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .clickable {
-                                    selectedCategory = cat
-                                    SoundEffectManager.playPop()
-                                },
-                            contentAlignment = Alignment.Center
+                val chunked = categories.chunked(3)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    chunked.forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(text = "$emoji $cat", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
+                            rowItems.forEach { cat ->
+                                val isSelected = (selectedCategory == cat)
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(34.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isSelected) CorporateAccentBlueLight else CorporateBg)
+                                        .border(
+                                            width = 1.dp,
+                                            color = if (isSelected) CorporateAccentBlue else CorporateCardBorder,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable {
+                                            selectedCategory = cat
+                                            SoundEffectManager.playPop()
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = cat.lowercase().replaceFirstChar { it.uppercase() },
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) CorporateAccentBlue else TextSecondary
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    categories.drop(4).forEach { (emoji, cat) ->
-                        val isSelected = (selectedCategory == cat)
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) MintGreenPrimary else SlateLight.copy(alpha = 0.4f))
-                                .border(
-                                    width = if (isSelected) 1.5.dp else 0.dp,
-                                    color = if (isSelected) MintGreenDark else Color.Transparent,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .clickable {
-                                    selectedCategory = cat
-                                    SoundEffectManager.playPop()
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "$emoji $cat", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, color = if (isSelected) MintGreenDark else SlateText)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Difficulty Selector
+                // Priority Level
                 Text(
-                    text = "DIFFICULTY LEVEL",
+                    text = "PRIORITY",
                     fontSize = 10.sp,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 1.1.sp,
-                    color = SlateMuted,
+                    color = TextMuted,
                     modifier = Modifier.align(Alignment.Start)
                 )
 
@@ -205,30 +185,25 @@ fun AddChoreDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TaskDifficulty.values().forEach { diff ->
                         val isSelected = (selectedDifficulty == diff)
-                        val bgColor = when (diff) {
-                            TaskDifficulty.EASY -> MintGreenPrimary
-                            TaskDifficulty.MEDIUM -> EggYellowLight
-                            TaskDifficulty.HARD -> ChoicePinkBg
-                        }
-                        val borderColor = when (diff) {
-                            TaskDifficulty.EASY -> MintGreenDark
-                            TaskDifficulty.MEDIUM -> EggAmber
-                            TaskDifficulty.HARD -> ChoicePinkBorder
+                        val priorityLabel = when (diff) {
+                            TaskDifficulty.EASY -> "Standard"
+                            TaskDifficulty.MEDIUM -> "High"
+                            TaskDifficulty.HARD -> "Critical"
                         }
 
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isSelected) bgColor else SlateLight.copy(alpha = 0.4f))
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) CorporatePrimary else CorporateBg)
                                 .border(
-                                    width = if (isSelected) 1.5.dp else 0.dp,
-                                    color = if (isSelected) borderColor else Color.Transparent,
-                                    shape = RoundedCornerShape(12.dp)
+                                    width = 1.dp,
+                                    color = if (isSelected) CorporatePrimary else CorporateCardBorder,
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                                 .clickable {
                                     selectedDifficulty = diff
@@ -237,75 +212,74 @@ fun AddChoreDialog(
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "${diff.emoji} ${diff.label}",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = SlateText
-                                )
-                                Text(
-                                    text = "+${diff.xp} XP",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SlateMuted
-                                )
-                            }
+                            Text(
+                                text = priorityLabel,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isSelected) Color.White else TextSecondary
+                            )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Photo Proof Requirement Toggle
+                // Verification Toggle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (requiresProof) ChoicePinkBg else SlateLight.copy(alpha = 0.35f))
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(CorporateBg)
                         .clickable {
                             requiresProof = !requiresProof
                             SoundEffectManager.playPop()
                         }
-                        .padding(10.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "📸", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Require Photo Proof",
+                            text = "Require Completion Verification",
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SlateText
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
                         )
                         Text(
-                            text = "Add before & after photos when completed",
-                            fontSize = 10.sp,
-                            color = SlateMuted
+                            text = "Attach deliverable confirmation upon finish",
+                            fontSize = 11.sp,
+                            color = TextMuted
                         )
                     }
                     Switch(
                         checked = requiresProof,
-                        onCheckedChange = { requiresProof = it }
+                        onCheckedChange = { requiresProof = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = CorporatePrimary
+                        )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                PoppableButton(
-                    text = "Add Task ✨",
+                Button(
                     onClick = {
                         val clean = rawText.trim()
                         if (clean.isNotBlank()) {
                             onSubmit(clean, selectedCategory, selectedMember, selectedDifficulty, requiresProof, isSoloTask)
                         }
                     },
-                    backgroundColor = MintGreenPrimary,
-                    bottomBorderColor = MintGreenBorderBottom,
-                    contentColor = MintGreenDark,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CorporatePrimary),
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) {
+                    Text(
+                        text = "Create Task",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                }
             }
         }
     }

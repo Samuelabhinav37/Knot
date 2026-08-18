@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Groups
@@ -26,8 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -37,42 +33,35 @@ import androidx.compose.ui.unit.sp
 import com.example.audio.SoundEffectManager
 import com.example.data.model.GroupMember
 import com.example.data.model.UserProfile
-import com.example.ui.components.PoppableButton
-import com.example.ui.components.squishClickable
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-data class MatchupCardOption(
+data class CadreTaskOption(
     val title: String,
-    val emoji: String,
     val description: String,
-    val tag: String,
-    val bgGradient: List<Color>,
-    val borderCol: Color
+    val domain: String
 )
 
-data class MatchupQuizQuestion(
+data class CadreQuizQuestion(
     val id: Int,
-    val categoryTitle: String,
+    val domainTitle: String,
     val questionText: String,
-    val cardA: MatchupCardOption,
-    val cardB: MatchupCardOption
+    val cardA: CadreTaskOption,
+    val cardB: CadreTaskOption
 )
 
-data class MatchedSquadInfo(
+data class CadreMatchResult(
     val squadName: String,
     val squadCode: String,
     val overallMatchPercent: Int,
     val summary: String,
-    val teammates: List<MatchedTeammate>
+    val teammates: List<CadreTeammate>
 )
 
-data class MatchedTeammate(
+data class CadreTeammate(
     val name: String,
-    val avatarEmoji: String,
-    val avatarColorHex: Long,
-    val personalityArchetype: String,
+    val role: String,
     val matchPercent: Int
 )
 
@@ -84,875 +73,608 @@ fun PairwiseSortScreen(
     onJoinMatchedSquad: (squadName: String, squadCode: String, matchedMembers: List<GroupMember>) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedOptionTab by remember { mutableStateOf(0) } // 0 = Friends with Code, 1 = Online Friends (6 Choices)
+    var selectedOptionTab by remember { mutableStateOf(0) } // 0 = Team Code, 1 = Workflow Alignment (6 Choices)
     var enteredCode by remember { mutableStateOf("") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // 6-question quiz state
+    // 6-question quiz state with clean, strong professional verbs and NO '&'
     val questions = remember {
         listOf(
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 1,
-                categoryTitle = "Daily Rhythm",
-                questionText = "When do you feel most inspired to get things done?",
-                cardA = MatchupCardOption(
-                    title = "Morning Energy",
-                    emoji = "🌅",
-                    description = "Sunrise momentum, getting daily tasks done early.",
-                    tag = "EARLY",
-                    bgGradient = listOf(Color(0xFFFFF8E7), Color(0xFFFFF1CC)),
-                    borderCol = EggAmber
+                domainTitle = "Operational Focus",
+                questionText = "Select your preferred daily work rhythm:",
+                cardA = CadreTaskOption(
+                    title = "Morning Deep Work",
+                    description = "Execute core critical priorities early in the day",
+                    domain = "Focus"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Night Owl Flow",
-                    emoji = "🌙",
-                    description = "Peaceful evening vibes, steady nighttime focus.",
-                    tag = "NIGHT",
-                    bgGradient = listOf(Color(0xFFF3EDFF), Color(0xFFE5D4FF)),
-                    borderCol = LilacDark
+                cardB = CadreTaskOption(
+                    title = "Afternoon Sprint",
+                    description = "Maintain steady momentum through structured afternoon sessions",
+                    domain = "Execution"
                 )
             ),
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 2,
-                categoryTitle = "Habit Focus",
-                questionText = "Which daily chore brings you the most satisfaction?",
-                cardA = MatchupCardOption(
-                    title = "Tidy & Organized",
-                    emoji = "🧹",
-                    description = "Decluttering surfaces, neat drawers, and clean floors.",
-                    tag = "ORGANIZING",
-                    bgGradient = listOf(Color(0xFFE8F7FF), Color(0xFFD0EFFF)),
-                    borderCol = SkyBlue
+                domainTitle = "Task Organization",
+                questionText = "Select your task structuring preference:",
+                cardA = CadreTaskOption(
+                    title = "Standardized Checklists",
+                    description = "Follow systematic itemized task sequences",
+                    domain = "Organization"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Nourishing Cooking",
-                    emoji = "🍳",
-                    description = "Prepping healthy ingredients and cooking fresh meals.",
-                    tag = "COOKING",
-                    bgGradient = listOf(Color(0xFFFFF3E6), Color(0xFFFFDEC2)),
-                    borderCol = Color(0xFFF09A58)
+                cardB = CadreTaskOption(
+                    title = "Dynamic Priority Boards",
+                    description = "Adapt deliverables fluidly as needs evolve",
+                    domain = "Agile"
                 )
             ),
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 3,
-                categoryTitle = "Sanctuary Vibe",
-                questionText = "What kind of home environment makes you feel happiest?",
-                cardA = MatchupCardOption(
-                    title = "Green Plant Haven",
-                    emoji = "🌿",
-                    description = "Lush indoor greenery, fresh air, and mindful plant care.",
-                    tag = "PLANTS",
-                    bgGradient = listOf(Color(0xFFEAF9F1), Color(0xFFC7F3DE)),
-                    borderCol = MintGreenDark
+                domainTitle = "Communication Channel",
+                questionText = "Select your team coordination style:",
+                cardA = CadreTaskOption(
+                    title = "Structured Daily Standup",
+                    description = "Align directly on daily blockers and progress",
+                    domain = "Collaboration"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Hands-on DIY & Craft",
-                    emoji = "🛠️",
-                    description = "Fixing squeaks, crafting home setups, building habits.",
-                    tag = "FIXING",
-                    bgGradient = listOf(Color(0xFFFFF0F5), Color(0xFFFFDDE7)),
-                    borderCol = BlushPinkDark
+                cardB = CadreTaskOption(
+                    title = "Asynchronous Logs",
+                    description = "Document clear written status updates independently",
+                    domain = "Documentation"
                 )
             ),
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 4,
-                categoryTitle = "Team Energy",
-                questionText = "How do you prefer to complete your daily goals?",
-                cardA = MatchupCardOption(
-                    title = "Active Squad Sync",
-                    emoji = "👥",
-                    description = "Cheering friends on, co-op sync, and shared energy.",
-                    tag = "COOP",
-                    bgGradient = listOf(Color(0xFFFDF6E2), Color(0xFFFBEBC4)),
-                    borderCol = EggAmber
+                domainTitle = "Execution Method",
+                questionText = "Select your task completion strategy:",
+                cardA = CadreTaskOption(
+                    title = "Iterative Milestones",
+                    description = "Deliver work in rapid, incremental checkpoints",
+                    domain = "Delivery"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Quiet Solo Peace",
-                    emoji = "🧘",
-                    description = "Calm independent focus, no pressure, serene rhythm.",
-                    tag = "SOLO",
-                    bgGradient = listOf(Color(0xFFF5EEFF), Color(0xFFEAD8FF)),
-                    borderCol = LilacDark
+                cardB = CadreTaskOption(
+                    title = "Comprehensive Completion",
+                    description = "Finish end-to-end deliverables thoroughly before review",
+                    domain = "Quality"
                 )
             ),
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 5,
-                categoryTitle = "Daily Pace",
-                questionText = "What style of daily habit routine fits you best?",
-                cardA = MatchupCardOption(
-                    title = "Steady Daily Steps",
-                    emoji = "⏱️",
-                    description = "Consistent small daily checkpoints to build momentum.",
-                    tag = "STEADY",
-                    bgGradient = listOf(Color(0xFFEBF8FA), Color(0xFFCEF1F5)),
-                    borderCol = MintGreenDark
+                domainTitle = "Team Synergy",
+                questionText = "Select your peer collaboration approach:",
+                cardA = CadreTaskOption(
+                    title = "Cross-Functional Review",
+                    description = "Validate outputs through multi-disciplinary feedback",
+                    domain = "Review"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Gentle Flexible Flow",
-                    emoji = "🌊",
-                    description = "Relaxed pace that adapts naturally to your schedule.",
-                    tag = "FLEXIBLE",
-                    bgGradient = listOf(Color(0xFFFFF5EE), Color(0xFFFFE4D6)),
-                    borderCol = Color(0xFFF5A376)
+                cardB = CadreTaskOption(
+                    title = "Autonomous Execution",
+                    description = "Drive objectives forward with self-directed ownership",
+                    domain = "Autonomy"
                 )
             ),
-            MatchupQuizQuestion(
+            CadreQuizQuestion(
                 id = 6,
-                categoryTitle = "Favorite Reward",
-                questionText = "Which reward motivates you most when you finish tasks?",
-                cardA = MatchupCardOption(
-                    title = "Cute Pet Companions",
-                    emoji = "🐣",
-                    description = "Hatching and caring for dragons, sloths, and bunnies.",
-                    tag = "PETS",
-                    bgGradient = listOf(Color(0xFFFFF0F7), Color(0xFFFFD6EA)),
-                    borderCol = BlushPinkDark
+                domainTitle = "Continuous Improvement",
+                questionText = "Select your evaluation standard:",
+                cardA = CadreTaskOption(
+                    title = "Daily Routine Audit",
+                    description = "Refine individual consistency and habit metrics daily",
+                    domain = "Habits"
                 ),
-                cardB = MatchupCardOption(
-                    title = "Life Skill Badges",
-                    emoji = "🏆",
-                    description = "Mastering guides, unlocking trophies, and tracking milestones.",
-                    tag = "BADGES",
-                    bgGradient = listOf(Color(0xFFFFFDE8), Color(0xFFFFF9B8)),
-                    borderCol = EggAmber
+                cardB = CadreTaskOption(
+                    title = "Weekly Retrospective",
+                    description = "Review collective team outcomes at each cycle end",
+                    domain = "Strategy"
                 )
             )
         )
     }
 
     var currentQuestionIndex by remember { mutableStateOf(0) }
-    var selectedChoices by remember { mutableStateOf(mutableListOf<String>()) }
+    val userAnswers = remember { mutableStateMapOf<Int, Int>() } // questionId -> chosen card (0 for A, 1 for B)
     var isCalculatingMatch by remember { mutableStateOf(false) }
-    var matchedSquadResult by remember { mutableStateOf<MatchedSquadInfo?>(null) }
+    var matchResult by remember { mutableStateOf<CadreMatchResult?>(null) }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentPadding = PaddingValues(bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .background(CorporateBg)
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Header
+        // Header
         item {
             Column {
                 Text(
-                    text = "Squad Matchup 🤝",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MintGreenDark
+                    text = "Cadre Workspace",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Join friends using a code or match with compatible online peers.",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = SlateMuted
+                    text = "Team synchronization and collaborative workflow matching.",
+                    fontSize = 13.sp,
+                    color = TextMuted
                 )
+            }
+        }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Option Switcher Tabs (Two Clear Options)
-                Row(
+        // Clean Segmented Tabs (Option 1 vs Option 2)
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CorporateSurface)
+                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(12.dp))
+                    .padding(4.dp)
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(CloudWhite)
-                        .border(1.5.dp, MintGreenLight, RoundedCornerShape(18.dp))
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (selectedOptionTab == 0) CorporatePrimary else Color.Transparent)
+                        .clickable {
+                            selectedOptionTab = 0
+                            SoundEffectManager.playPop()
+                        }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Option 1 Tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (selectedOptionTab == 0) MintGreenPrimary else Color.Transparent)
-                            .clickable {
-                                selectedOptionTab = 0
-                                SoundEffectManager.playPop()
-                            }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🔑", fontSize = 14.sp)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Friends with Code",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedOptionTab == 0) FontWeight.Black else FontWeight.Bold,
-                                color = if (selectedOptionTab == 0) MintGreenDark else SlateMuted
-                            )
-                        }
-                    }
+                    Text(
+                        text = "Team Code",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selectedOptionTab == 0) Color.White else TextSecondary
+                    )
+                }
 
-                    // Option 2 Tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (selectedOptionTab == 1) MintGreenPrimary else Color.Transparent)
-                            .clickable {
-                                selectedOptionTab = 1
-                                SoundEffectManager.playPop()
-                            }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🌐", fontSize = 14.sp)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Online Match (Quiz)",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedOptionTab == 1) FontWeight.Black else FontWeight.Bold,
-                                color = if (selectedOptionTab == 1) MintGreenDark else SlateMuted
-                            )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (selectedOptionTab == 1) CorporatePrimary else Color.Transparent)
+                        .clickable {
+                            selectedOptionTab = 1
+                            SoundEffectManager.playPop()
                         }
-                    }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Workflow Match",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selectedOptionTab == 1) Color.White else TextSecondary
+                    )
                 }
             }
         }
 
-        // ==========================================
-        // OPTION 1: FRIENDS WITH CODE
-        // ==========================================
+        // Option 1: Team Code
         if (selectedOptionTab == 0) {
             item {
-                // Card A: Enter Code to Join
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(2.dp, RoundedCornerShape(24.dp), spotColor = MintGreenDark.copy(alpha = 0.15f))
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(CloudWhite)
-                        .border(1.5.dp, MintGreenLight, RoundedCornerShape(24.dp))
-                        .padding(18.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CorporateSurface)
+                        .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                        .padding(20.dp)
                 ) {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(MintGreenLight),
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(CorporateAccentBlueLight),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Key,
-                                    contentDescription = null,
-                                    tint = MintGreenDark,
-                                    modifier = Modifier.size(20.dp)
+                                    contentDescription = "Code",
+                                    tint = CorporateAccentBlue,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Join with a Friend's Code",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = SlateText
+                                    text = "Join with Invite Code",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
                                 )
                                 Text(
-                                    text = "Enter a code shared by your friend",
-                                    fontSize = 11.sp,
-                                    color = SlateMuted
+                                    text = "Connect with colleagues using a squad code",
+                                    fontSize = 12.sp,
+                                    color = TextMuted
                                 )
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(14.dp))
 
                         OutlinedTextField(
                             value = enteredCode,
                             onValueChange = { enteredCode = it.uppercase() },
-                            placeholder = {
-                                Text(
-                                    text = "e.g. OASIS-7X29",
-                                    fontSize = 13.sp,
-                                    color = SlateMuted
-                                )
-                            },
+                            placeholder = { Text("e.g. CADRE-8X9") },
                             singleLine = true,
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MintGreenDark,
-                                unfocusedBorderColor = MintGreenLight,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                                focusedBorderColor = CorporatePrimary,
+                                unfocusedBorderColor = CorporateCardBorder
+                            )
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        PoppableButton(
-                            text = "Join Squad 🚀",
+                        Button(
                             onClick = {
-                                val clean = enteredCode.trim().uppercase()
-                                if (clean.isNotEmpty()) {
-                                    onJoinSquadWithCode(clean)
-                                    Toast.makeText(context, "Joined Squad $clean!", Toast.LENGTH_SHORT).show()
+                                if (enteredCode.isNotBlank()) {
+                                    SoundEffectManager.playPop()
+                                    onJoinSquadWithCode(enteredCode.trim())
+                                    Toast.makeText(context, "Connected to ${enteredCode.trim()}", Toast.LENGTH_SHORT).show()
                                     enteredCode = ""
-                                } else {
-                                    Toast.makeText(context, "Please enter a valid squad code", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            backgroundColor = MintGreenPrimary,
-                            bottomBorderColor = MintGreenBorderBottom,
-                            contentColor = MintGreenDark,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CorporatePrimary),
                             modifier = Modifier.fillMaxWidth()
-                        )
+                        ) {
+                            Text(
+                                text = "Connect to Team",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }
 
+            // Current Squad Share Card
             item {
-                // Card B: Your Invite Code (Share with Friends)
-                val currentCode = userProfile?.squadCode ?: "OASIS-7X29"
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(2.dp, RoundedCornerShape(24.dp), spotColor = EggAmber.copy(alpha = 0.2f))
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(EggYellowLight)
-                        .border(1.5.dp, EggAmber, RoundedCornerShape(24.dp))
-                        .padding(18.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CorporateSurface)
+                        .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                        .padding(20.dp)
                 ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = "💌", fontSize = 20.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        text = "Your Team Invite Code",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = AmberTextDark
-                                    )
-                                    Text(
-                                        text = "Share this code so friends can team up with you",
-                                        fontSize = 10.sp,
-                                        color = SlateMuted
-                                    )
-                                }
-                            }
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Your Active Squad",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        val currentCode = userProfile?.squadCode ?: "CADRE-8X9"
+                        val currentName = userProfile?.squadName ?: "Cadre Unit Alpha"
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(CloudWhite)
-                                .border(1.dp, EggAmber, RoundedCornerShape(14.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(CorporateBg)
+                                .border(1.dp, CorporateCardBorder, RoundedCornerShape(10.dp))
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = currentCode,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 2.sp,
-                                color = AmberTextDeep
-                            )
+                            Column {
+                                Text(
+                                    text = currentName,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "Code: $currentCode",
+                                    fontSize = 12.sp,
+                                    color = TextMuted
+                                )
+                            }
 
-                            Box(
-                                modifier = Modifier
-                                    .squishClickable {
-                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = ClipData.newPlainText("Squad Code", currentCode)
-                                        clipboard.setPrimaryClip(clip)
-                                        SoundEffectManager.playPop()
-                                        Toast.makeText(context, "Copied code $currentCode!", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(EggYellowMid)
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContentCopy,
-                                        contentDescription = "Copy",
-                                        tint = AmberTextDark,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Copy",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = AmberTextDark
-                                    )
+                            IconButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboard.setPrimaryClip(ClipData.newPlainText("Squad Code", currentCode))
+                                    Toast.makeText(context, "Code copied to clipboard", Toast.LENGTH_SHORT).show()
                                 }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copy",
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
+
+                        Text(
+                            text = "${members.size} active colleagues currently in this workspace.",
+                            fontSize = 12.sp,
+                            color = TextMuted
+                        )
                     }
                 }
             }
+        }
 
-            // Card C: Active Squad Members
-            item {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+        // Option 2: 6-Question Workflow Alignment Quiz
+        if (selectedOptionTab == 1) {
+            if (isCalculatingMatch) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(260.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(CorporateSurface)
+                            .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "Current Squad: ${userProfile?.squadName ?: "Pastel Squad"}",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            color = SlateText
-                        )
-                        Text(
-                            text = "${members.size} Members",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MintGreenDark
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = CorporatePrimary)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Evaluating Alignment...",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Matching with professionals sharing 60%+ workflow alignment",
+                                fontSize = 12.sp,
+                                color = TextMuted,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    members.forEach { member ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(CloudWhite)
-                                .border(1.dp, MintGreenLight, RoundedCornerShape(16.dp))
-                                .padding(12.dp)
-                        ) {
+                }
+            } else if (matchResult != null) {
+                // Display Match Result
+                val res = matchResult!!
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(CorporateSurface)
+                            .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                            .padding(20.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(38.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(member.avatarColorHex).copy(alpha = 0.6f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = member.avatarEmoji, fontSize = 18.sp)
-                                }
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = member.name,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = SlateText
-                                        )
-                                        if (member.isCurrentActiveUser) {
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(MintGreenLight)
-                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                            ) {
-                                                Text(
-                                                    text = "You",
-                                                    fontSize = 9.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = MintGreenDark
-                                                )
-                                            }
-                                        }
-                                    }
+                                Column {
                                     Text(
-                                        text = member.personalityArchetype,
-                                        fontSize = 10.sp,
-                                        color = SlateMuted
+                                        text = "Match Confirmed",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = CorporateSuccess
+                                    )
+                                    Text(
+                                        text = res.squadName,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
                                     )
                                 }
 
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(EggYellowLight)
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .background(CorporateSuccessLight)
+                                        .border(1.dp, CorporateSuccess.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "✓ ${member.tasksCompletedCount} done",
-                                        fontSize = 10.sp,
+                                        text = "${res.overallMatchPercent}% Match",
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = AmberTextDeep
+                                        color = CorporateSuccess
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ==========================================
-        // OPTION 2: ONLINE FRIENDS (6 CHOICES QUIZ)
-        // ==========================================
-        if (selectedOptionTab == 1) {
-            if (matchedSquadResult == null && !isCalculatingMatch) {
-                val currentQ = questions[currentQuestionIndex]
-
-                item {
-                    // Question Counter & Progress
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(CloudWhite)
-                            .border(1.5.dp, MintGreenLight, RoundedCornerShape(18.dp))
-                            .padding(14.dp)
-                    ) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "QUESTION ${currentQuestionIndex + 1} OF 6: ${currentQ.categoryTitle.uppercase()}",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 1.1.sp,
-                                    color = MintGreenDark
-                                )
-                                Text(
-                                    text = "${((currentQuestionIndex + 1) * 100) / 6}%",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = SlateMuted
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Linear Progress Bar
-                            LinearProgressIndicator(
-                                progress = { (currentQuestionIndex + 1) / 6f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp)),
-                                color = MintGreenDark,
-                                trackColor = MintGreenLight
-                            )
-
-                            Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = currentQ.questionText,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = SlateText
+                                text = res.summary,
+                                fontSize = 13.sp,
+                                color = TextSecondary,
+                                lineHeight = 18.sp
                             )
-                        }
-                    }
-                }
 
-                // Card A Choice
-                item {
-                    QuizCardChoice(
-                        option = currentQ.cardA,
-                        onClick = {
-                            selectedChoices.add(currentQ.cardA.tag)
-                            SoundEffectManager.playPop()
-                            if (currentQuestionIndex < questions.size - 1) {
-                                currentQuestionIndex += 1
-                            } else {
-                                // Finished all 6 choices -> calculate match
-                                isCalculatingMatch = true
-                                coroutineScope.launch {
-                                    delay(1200)
-                                    isCalculatingMatch = false
-                                    matchedSquadResult = generateMatchedSquad(selectedChoices)
-                                    SoundEffectManager.playFanfare()
-                                }
-                            }
-                        }
-                    )
-                }
+                            Divider(color = CorporateCardBorder, thickness = 0.8.dp)
 
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(CloudWhite)
-                                .border(1.5.dp, MintGreenLight, CircleShape)
-                                .padding(horizontal = 14.dp, vertical = 6.dp)
-                        ) {
                             Text(
-                                text = "— OR —",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = SlateMuted
+                                text = "Matched Team Members:",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
                             )
-                        }
-                    }
-                }
 
-                // Card B Choice
-                item {
-                    QuizCardChoice(
-                        option = currentQ.cardB,
-                        onClick = {
-                            selectedChoices.add(currentQ.cardB.tag)
-                            SoundEffectManager.playPop()
-                            if (currentQuestionIndex < questions.size - 1) {
-                                currentQuestionIndex += 1
-                            } else {
-                                // Finished all 6 choices -> calculate match
-                                isCalculatingMatch = true
-                                coroutineScope.launch {
-                                    delay(1200)
-                                    isCalculatingMatch = false
-                                    matchedSquadResult = generateMatchedSquad(selectedChoices)
-                                    SoundEffectManager.playFanfare()
-                                }
-                            }
-                        }
-                    )
-                }
-            } else if (isCalculatingMatch) {
-                // Calculating animation state
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .clip(RoundedCornerShape(28.dp))
-                            .background(CloudWhite)
-                            .border(2.dp, MintGreenDark, RoundedCornerShape(28.dp))
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "✨", fontSize = 42.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Finding Your 60%+ Compatible Squad...",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Black,
-                                textAlign = TextAlign.Center,
-                                color = MintGreenDark
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Analyzing your 6 value answers against active online daily routine seekers...",
-                                fontSize = 11.sp,
-                                textAlign = TextAlign.Center,
-                                color = SlateMuted
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            CircularProgressIndicator(
-                                color = MintGreenDark,
-                                strokeWidth = 3.dp,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                    }
-                }
-            } else if (matchedSquadResult != null) {
-                // Matched Squad Result!
-                val squad = matchedSquadResult!!
-
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(4.dp, RoundedCornerShape(28.dp), spotColor = MintGreenDark.copy(alpha = 0.25f))
-                            .clip(RoundedCornerShape(28.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFFEAF9F1),
-                                        Color(0xFFF6FFF9),
-                                        CloudWhite
-                                    )
-                                )
-                            )
-                            .border(2.5.dp, MintGreenDark, RoundedCornerShape(28.dp))
-                            .padding(18.dp)
-                    ) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MintGreenLight)
-                                        .border(1.dp, MintGreenDark, RoundedCornerShape(12.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                            res.teammates.forEach { tm ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "🎉 MATCH FOUND",
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Black,
-                                        letterSpacing = 1.sp,
-                                        color = MintGreenDark
-                                    )
-                                }
-
-                                Text(
-                                    text = "🔥 ${squad.overallMatchPercent}% Value Match",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = MintGreenDark
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Text(
-                                text = squad.squadName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Black,
-                                color = SlateText
-                            )
-
-                            Text(
-                                text = squad.summary,
-                                fontSize = 11.sp,
-                                color = SlateMuted
-                            )
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Text(
-                                text = "Matched Teammates (≥ 60% Similarity):",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = SlateText
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            squad.teammates.forEach { mate ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(CloudWhite)
-                                        .border(1.dp, MintGreenLight, RoundedCornerShape(14.dp))
-                                        .padding(10.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(34.dp)
-                                                .clip(CircleShape)
-                                                .background(Color(mate.avatarColorHex).copy(alpha = 0.6f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(text = mate.avatarEmoji, fontSize = 16.sp)
-                                        }
-
-                                        Spacer(modifier = Modifier.width(10.dp))
-
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = mate.name,
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = SlateText
-                                            )
-                                            Text(
-                                                text = mate.personalityArchetype,
-                                                fontSize = 10.sp,
-                                                color = SlateMuted
-                                            )
-                                        }
-
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(Color(0xFFE6FAF1))
-                                                .padding(horizontal = 8.dp, vertical = 3.dp)
-                                        ) {
-                                            Text(
-                                                text = "${mate.matchPercent}% Match",
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Black,
-                                                color = MintGreenDark
-                                            )
-                                        }
+                                    Column {
+                                        Text(
+                                            text = tm.name,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = TextPrimary
+                                        )
+                                        Text(
+                                            text = tm.role,
+                                            fontSize = 11.sp,
+                                            color = TextMuted
+                                        )
                                     }
+
+                                    Text(
+                                        text = "${tm.matchPercent}% aligned",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = CorporateSuccess
+                                    )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // Action: Join this group
-                            PoppableButton(
-                                text = "Join This Matched Group 🎉",
+                            Button(
                                 onClick = {
-                                    val groupMembers = squad.teammates.map { mate ->
+                                    val newMembers = res.teammates.mapIndexed { idx, tm ->
                                         GroupMember(
-                                            name = mate.name,
-                                            avatarEmoji = mate.avatarEmoji,
-                                            avatarColorHex = mate.avatarColorHex,
-                                            personalityArchetype = mate.personalityArchetype,
-                                            primaryInterest = "Daily Routine",
-                                            tasksCompletedCount = (1..3).random(),
+                                            name = tm.name,
+                                            avatarEmoji = "👤",
+                                            avatarColorHex = 0xFF1E293B,
+                                            personalityArchetype = tm.role,
+                                            primaryInterest = "Operations",
+                                            tasksCompletedCount = 12 + idx * 4,
                                             isCurrentActiveUser = false
                                         )
                                     }
-                                    onJoinMatchedSquad(squad.squadName, squad.squadCode, groupMembers)
-                                    Toast.makeText(context, "Joined ${squad.squadName}!", Toast.LENGTH_SHORT).show()
-                                    selectedOptionTab = 0
+                                    onJoinMatchedSquad(res.squadName, res.squadCode, newMembers)
+                                    Toast.makeText(context, "Joined ${res.squadName}", Toast.LENGTH_SHORT).show()
+                                    matchResult = null
+                                    userAnswers.clear()
+                                    currentQuestionIndex = 0
                                 },
-                                backgroundColor = MintGreenPrimary,
-                                bottomBorderColor = MintGreenBorderBottom,
-                                contentColor = MintGreenDark,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = CorporatePrimary),
                                 modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Retake quiz button
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        currentQuestionIndex = 0
-                                        selectedChoices.clear()
-                                        matchedSquadResult = null
-                                    }
-                                    .padding(vertical = 6.dp),
-                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Retake 6-Question Quiz 🔄",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SlateMuted
+                                    text = "Join Cadre Squad",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White
                                 )
                             }
                         }
+                    }
+                }
+            } else {
+                // Active Question Card
+                val currentQ = questions[currentQuestionIndex]
+
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        // Progress Bar
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Step ${currentQuestionIndex + 1} of ${questions.size}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextMuted
+                            )
+                            Text(
+                                text = currentQ.domainTitle,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = CorporateAccentBlue
+                            )
+                        }
+
+                        LinearProgressIndicator(
+                            progress = { (currentQuestionIndex + 1) / questions.size.toFloat() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = CorporatePrimary,
+                            trackColor = CorporateCardBorder
+                        )
+
+                        Text(
+                            text = currentQ.questionText,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        // Card A
+                        CorporateChoiceCard(
+                            option = currentQ.cardA,
+                            label = "Option A",
+                            isSelected = userAnswers[currentQ.id] == 0,
+                            onClick = {
+                                SoundEffectManager.playPop()
+                                userAnswers[currentQ.id] = 0
+                                if (currentQuestionIndex < questions.size - 1) {
+                                    currentQuestionIndex++
+                                } else {
+                                    // Trigger Calculation
+                                    coroutineScope.launch {
+                                        isCalculatingMatch = true
+                                        delay(1200)
+                                        isCalculatingMatch = false
+                                        val matchScore = 78 + (userAnswers.values.sum() * 3) % 18
+                                        matchResult = CadreMatchResult(
+                                            squadName = "Cadre Operations Unit",
+                                            squadCode = "CADRE-OP9",
+                                            overallMatchPercent = matchScore.coerceIn(65, 96),
+                                            summary = "High operational alignment across structured milestone delivery and asynchronous documentation standards.",
+                                            teammates = listOf(
+                                                CadreTeammate("Elena Vance", "Strategy Lead", matchScore),
+                                                CadreTeammate("Marcus Cole", "Execution Specialist", matchScore - 4),
+                                                CadreTeammate("Priya Nair", "Quality Reviewer", matchScore - 2)
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        )
+
+                        // Card B
+                        CorporateChoiceCard(
+                            option = currentQ.cardB,
+                            label = "Option B",
+                            isSelected = userAnswers[currentQ.id] == 1,
+                            onClick = {
+                                SoundEffectManager.playPop()
+                                userAnswers[currentQ.id] = 1
+                                if (currentQuestionIndex < questions.size - 1) {
+                                    currentQuestionIndex++
+                                } else {
+                                    coroutineScope.launch {
+                                        isCalculatingMatch = true
+                                        delay(1200)
+                                        isCalculatingMatch = false
+                                        val matchScore = 74 + (userAnswers.values.sum() * 4) % 20
+                                        matchResult = CadreMatchResult(
+                                            squadName = "Cadre Agile Core",
+                                            squadCode = "CADRE-AG7",
+                                            overallMatchPercent = matchScore.coerceIn(65, 96),
+                                            summary = "Demonstrates strong alignment in dynamic priority management and continuous peer collaboration.",
+                                            teammates = listOf(
+                                                CadreTeammate("Sarah Jenkins", "Product Coordinator", matchScore),
+                                                CadreTeammate("David Chen", "Sprint Manager", matchScore - 3),
+                                                CadreTeammate("Amara Okafor", "Systems Architect", matchScore - 5)
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -961,108 +683,70 @@ fun PairwiseSortScreen(
 }
 
 @Composable
-private fun QuizCardChoice(
-    option: MatchupCardOption,
+private fun CorporateChoiceCard(
+    option: CadreTaskOption,
+    label: String,
+    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .squishClickable(onClick = onClick)
-            .shadow(3.dp, RoundedCornerShape(22.dp), spotColor = option.borderCol.copy(alpha = 0.25f))
-            .clip(RoundedCornerShape(22.dp))
-            .background(
-                Brush.verticalGradient(colors = option.bgGradient)
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (isSelected) CorporateAccentBlueLight else CorporateSurface)
+            .border(
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) CorporateAccentBlue else CorporateCardBorder,
+                shape = RoundedCornerShape(14.dp)
             )
-            .border(2.dp, option.borderCol, RoundedCornerShape(22.dp))
-            .padding(18.dp)
+            .clickable(onClick = onClick)
+            .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.8f))
-                    .border(1.5.dp, option.borderCol, CircleShape),
-                contentAlignment = Alignment.Center
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = option.emoji, fontSize = 26.sp)
+                Text(
+                    text = label.uppercase(),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) CorporateAccentBlue else TextMuted
+                )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(CorporateBg)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = option.domain,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextMuted
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = option.title,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Black,
-                    color = SlateText
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = option.description,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = SlateMuted
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Choose →",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                color = option.borderCol
+                text = option.title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = option.description,
+                fontSize = 12.sp,
+                color = TextSecondary,
+                lineHeight = 16.sp
             )
         }
-    }
-}
-
-private fun generateMatchedSquad(choices: List<String>): MatchedSquadInfo {
-    val isEarly = choices.contains("EARLY")
-    val isPlants = choices.contains("PLANTS")
-    val isCooking = choices.contains("COOKING")
-
-    return if (isPlants || isEarly) {
-        MatchedSquadInfo(
-            squadName = "Sunlit Bloomers Squad",
-            squadCode = "BLOOM-84X",
-            overallMatchPercent = 82,
-            summary = "Peers who thrive on morning sunlight, plant hydration rituals, and clean spaces.",
-            teammates = listOf(
-                MatchedTeammate("Aria", "🌸", 0xFFFFB6C1, "The Plant Whisperer", 88),
-                MatchedTeammate("Felix", "🌿", 0xFFA8E6CF, "The Cozy Cultivator", 82),
-                MatchedTeammate("Maya", "🍳", 0xFFFFF9A6, "The Culinary Artisan", 74),
-                MatchedTeammate("Leo", "🎀", 0xFFE8D7FF, "The Mindful Minimalist", 68)
-            )
-        )
-    } else if (isCooking) {
-        MatchedSquadInfo(
-            squadName = "Cozy Hearth Squad",
-            squadCode = "HEARTH-29Y",
-            overallMatchPercent = 78,
-            summary = "Peers passionate about healthy batch-cooking, kitchen prep, and warm community vibes.",
-            teammates = listOf(
-                MatchedTeammate("Kai", "🍳", 0xFFFFF9A6, "The Culinary Artisan", 85),
-                MatchedTeammate("Chloe", "🎀", 0xFFE8D7FF, "The Mindful Minimalist", 78),
-                MatchedTeammate("Milo", "🛠️", 0xFFFFD1DC, "The Handy Crafter", 72),
-                MatchedTeammate("Nova", "🌸", 0xFFFFB6C1, "The Cozy Cultivator", 66)
-            )
-        )
-    } else {
-        MatchedSquadInfo(
-            squadName = "Zen Starlight Squad",
-            squadCode = "STAR-91Z",
-            overallMatchPercent = 75,
-            summary = "Peers dedicated to gentle daily pacing, mindful breathing, and organized desks.",
-            teammates = listOf(
-                MatchedTeammate("Soren", "🌙", 0xFFE8D7FF, "The Mindful Minimalist", 86),
-                MatchedTeammate("Luna", "🌿", 0xFFA8E6CF, "The Plant Whisperer", 79),
-                MatchedTeammate("Jasper", "🧺", 0xFFFFF9A6, "The Energetic Organizer", 71),
-                MatchedTeammate("Nina", "🎨", 0xFFFFB6C1, "The Cozy Cultivator", 64)
-            )
-        )
     }
 }

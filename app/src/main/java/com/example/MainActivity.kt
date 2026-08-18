@@ -13,20 +13,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,26 +97,18 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
         return
     }
 
-    // Main App with Atmospheric Seasonal & Day/Night Background
+    // Main App with Neutral Corporate Background
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(currentTimeTheme.backgroundColor)
+            .background(CorporateBg)
     ) {
-        // Atmospheric Canvas Layer (Snowflakes, Cherry Blossom Petals, Star Sparkles)
-        AtmosphereOverlay(
-            season = currentSeason,
-            timeOfDay = currentTimeTheme,
-            animationDensity = userProfile?.animationDensity ?: "HIGH",
-            modifier = Modifier.fillMaxSize()
-        )
-
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets.safeDrawing,
             bottomBar = {
-                PastelBottomNavigationBar(
+                CorporateBottomNavigationBar(
                     selectedTab = selectedTab,
                     onSelectTab = {
                         viewModel.setSelectedTab(it)
@@ -170,35 +162,22 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
                         onOpenTutorial = { tut -> viewModel.openTutorialDialog(tut.id) }
                     )
                     3 -> PetParadiseScreen(
+                        userProfile = userProfile,
+                        members = members,
                         pets = pets,
                         badges = badges,
-                        currentStreak = meta?.currentStreak ?: 3,
+                        currentStreak = meta?.currentStreak ?: 5,
                         onEquipAccessory = { petId, acc -> viewModel.equipPetAccessory(petId, acc) },
                         onFeedTreat = { treat -> viewModel.feedBuddy(treat) },
                         onPetBuddy = { viewModel.petBuddy() },
-                        onOpenBadgesGallery = { viewModel.openBadgeGalleryDialog() }
+                        onOpenBadgesGallery = { viewModel.openBadgeGalleryDialog() },
+                        onOpenSettings = { viewModel.openSettingsDialog() }
                     )
                 }
             }
         }
 
-        // Energy Spark Particle Arc from checked task to the Egg
-        EnergySparkEffect(
-            trigger = sparkTrigger,
-            startOffset = sparkStartPos,
-            targetOffset = sparkTargetPos,
-            onReachedTarget = {}
-        )
-
-        // Confetti Burst Layer
-        ConfettiBurst(
-            trigger = confettiTrigger,
-            originXRatio = 0.5f,
-            originYRatio = 0.35f,
-            particleCount = 55
-        )
-
-        // Dialog: Add Daily Life Task / Thought Bubble
+        // Dialog: Add Daily Life Task
         if (showThoughtBubbleDialog) {
             AddChoreDialog(
                 members = members,
@@ -242,7 +221,7 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
             )
         }
 
-        // Dialog: Badges Showcase & Pet Summon Progress
+        // Dialog: Badges Showcase & Milestones
         if (showBadgeGalleryDialog) {
             BadgeShowcaseDialog(
                 badges = badges,
@@ -250,7 +229,7 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
             )
         }
 
-        // Dialog: Settings & Atmosphere Controls
+        // Dialog: Settings & Profile Controls
         if (showSettingsDialog) {
             SettingsDialog(
                 userProfile = userProfile,
@@ -271,7 +250,7 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
 }
 
 @Composable
-private fun PastelBottomNavigationBar(
+private fun CorporateBottomNavigationBar(
     selectedTab: Int,
     onSelectTab: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -280,38 +259,36 @@ private fun PastelBottomNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .shadow(12.dp, RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp), spotColor = EggAmber.copy(alpha = 0.15f))
-            .clip(RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp))
-            .background(CloudWhite)
-            .border(2.dp, EggYellowLight, RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .background(CorporateSurface)
+            .border(1.dp, CorporateCardBorder)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PastelNavPill(
-                title = "Oasis",
-                emoji = "🐣",
+            CorporateNavTab(
+                title = "Home",
+                icon = Icons.Default.Home,
                 isSelected = (selectedTab == 0),
                 onClick = { onSelectTab(0) }
             )
-            PastelNavPill(
-                title = "Matchup",
-                emoji = "⚖️",
+            CorporateNavTab(
+                title = "Cadre",
+                icon = Icons.Default.Groups,
                 isSelected = (selectedTab == 1),
                 onClick = { onSelectTab(1) }
             )
-            PastelNavPill(
-                title = "Guides",
-                emoji = "📖",
+            CorporateNavTab(
+                title = "Zen",
+                icon = Icons.Default.SelfImprovement,
                 isSelected = (selectedTab == 2),
                 onClick = { onSelectTab(2) }
             )
-            PastelNavPill(
-                title = "Paradise",
-                emoji = "🌸",
+            CorporateNavTab(
+                title = "Account",
+                icon = Icons.Default.Person,
                 isSelected = (selectedTab == 3),
                 onClick = { onSelectTab(3) }
             )
@@ -320,45 +297,40 @@ private fun PastelBottomNavigationBar(
 }
 
 @Composable
-private fun PastelNavPill(
+private fun CorporateNavTab(
     title: String,
-    emoji: String,
+    icon: ImageVector,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .squishClickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(width = 46.dp, height = 36.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(if (isSelected) NavActiveBg else Color.Transparent)
-                .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) NavActiveBorder else Color.Transparent,
-                    shape = RoundedCornerShape(14.dp)
-                ),
+                .size(width = 44.dp, height = 30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(if (isSelected) CorporateAccentBlueLight else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = emoji,
-                fontSize = 18.sp,
-                modifier = Modifier.alpha(if (isSelected) 1f else 0.45f)
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (isSelected) CorporateAccentBlue else TextMuted,
+                modifier = Modifier.size(20.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
-            text = title.uppercase(),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.8.sp,
-            color = if (isSelected) AmberTextDark else SlateMuted.copy(alpha = 0.6f)
+            text = title,
+            fontSize = 11.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) CorporateAccentBlue else TextMuted
         )
     }
 }
