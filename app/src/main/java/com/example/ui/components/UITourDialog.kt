@@ -37,7 +37,7 @@ fun UITourDialog(
 
     val tourSteps = listOf(
         TourStep(
-            title = "1. The Oasis Egg & Streak Hub",
+            title = "1. The Knot Egg & Streak Hub",
             description = "Check off daily life tasks with your friends. Every task charges the incubation crystal and cracks the egg closer to hatching!",
             iconEmoji = "🐣",
             color = EggYellowLight

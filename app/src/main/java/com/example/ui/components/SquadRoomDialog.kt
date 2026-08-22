@@ -38,7 +38,7 @@ fun SquadRoomDialog(
     var inputCode by remember { mutableStateOf("") }
     var isJoiningByCode by remember { mutableStateOf(false) }
 
-    val squadCode = userProfile?.squadCode ?: "OASIS-7X29"
+    val squadCode = userProfile?.squadCode ?: "KNOT-7X29"
     val squadName = userProfile?.squadName ?: "Pastel Blossom Squad"
     val currentMode = userProfile?.currentMode ?: "SQUAD"
 
@@ -205,7 +205,7 @@ fun SquadRoomDialog(
                         OutlinedTextField(
                             value = inputCode,
                             onValueChange = { inputCode = it.uppercase() },
-                            label = { Text("Code (e.g. OASIS-8822)") },
+                            label = { Text("Code (e.g. KNOT-8822)") },
                             singleLine = true,
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.weight(1f),

@@ -56,11 +56,11 @@ fun OnboardingFlowScreen(
     var step by remember { mutableStateOf(0) } // 0: Welcome & Auth, 1: Profile & Avatar, 2: 5 Interest Cards Quiz, 3: Squad & Goal
 
     var authProvider by remember { mutableStateOf("GOOGLE") }
-    var email by remember { mutableStateOf("explorer@oasis.app") }
+    var email by remember { mutableStateOf("explorer@knot.app") }
     var username by remember { mutableStateOf("Mia") }
     var genderPronoun by remember { mutableStateOf("She/Her") }
     var selectedAvatar by remember { mutableStateOf("🌸") }
-    var squadCode by remember { mutableStateOf("OASIS-7X29") }
+    var squadCode by remember { mutableStateOf("KNOT-7X29") }
     var initialGoal by remember { mutableStateOf("FOLDING") }
 
     val interestOptions = listOf(
@@ -286,7 +286,7 @@ private fun WelcomeAuthStep(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Welcome to Oasis",
+            text = "Welcome to Knot",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black,
             color = MintGreenDark,
@@ -650,7 +650,7 @@ private fun GoalAndSquadStep(
         OutlinedTextField(
             value = squadCode,
             onValueChange = onSquadCodeChange,
-            label = { Text("Squad Code (e.g. OASIS-7X29)") },
+            label = { Text("Squad Code (e.g. KNOT-7X29)") },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -708,7 +708,7 @@ private fun GoalAndSquadStep(
         Spacer(modifier = Modifier.height(24.dp))
 
         PoppableButton(
-            text = "Enter Oasis Paradise ✨",
+            text = "Enter Knot Paradise ✨",
             onClick = onFinish,
             backgroundColor = MintGreenPrimary,
             bottomBorderColor = MintGreenBorderBottom,

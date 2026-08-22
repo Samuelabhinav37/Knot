@@ -4,9 +4,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.example.data.model.ChoreItem
 import com.example.data.model.GroupMember
-import com.example.data.model.OasisMeta
+import com.example.data.model.KnotMeta
 import com.example.data.model.UserProfile
-import com.example.ui.screens.OasisHomeScreen
+import com.example.ui.screens.KnotHomeScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.AppSeason
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
@@ -29,8 +29,8 @@ class GreetingScreenshotTest {
   fun greeting_screenshot() {
     composeTestRule.setContent {
       MyApplicationTheme {
-        OasisHomeScreen(
-          meta = OasisMeta(),
+        KnotHomeScreen(
+          meta = KnotMeta(),
           userProfile = UserProfile(),
           currentSeason = AppSeason.SPRING,
           coreFive = listOf(

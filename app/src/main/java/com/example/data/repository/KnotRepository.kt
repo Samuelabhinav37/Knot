@@ -1,18 +1,18 @@
 package com.example.data.repository
 
-import com.example.data.local.OasisDao
+import com.example.data.local.KnotDao
 import com.example.data.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlin.math.pow
 
-class OasisRepository(private val dao: OasisDao) {
+class KnotRepository(private val dao: KnotDao) {
 
     val allChores: Flow<List<ChoreItem>> = dao.getAllChores()
     val coreFiveChores: Flow<List<ChoreItem>> = dao.getCoreFiveActiveChores()
     val allMembers: Flow<List<GroupMember>> = dao.getAllMembers()
     val allPets: Flow<List<HatchedPet>> = dao.getAllPets()
     val activeBuddy: Flow<HatchedPet?> = dao.getActiveBuddy()
-    val oasisMeta: Flow<OasisMeta?> = dao.getOasisMeta()
+    val knotMeta: Flow<KnotMeta?> = dao.getKnotMeta()
     val userProfile: Flow<UserProfile?> = dao.getUserProfile()
     val allBadges: Flow<List<BadgeItem>> = dao.getAllBadges()
     val allTutorials: Flow<List<SkillTutorial>> = dao.getAllTutorials()
@@ -71,7 +71,7 @@ class OasisRepository(private val dao: OasisDao) {
 
     suspend fun hatchEgg(petName: String? = null): HatchedPet {
         val members = dao.getMembersList()
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
+        val meta = dao.getKnotMetaSync() ?: KnotMeta()
 
         // Evaluate participation
         val totalMembers = members.size.coerceAtLeast(1)
@@ -87,7 +87,7 @@ class OasisRepository(private val dao: OasisDao) {
         val legendaryPool = listOf(
             Pair("Starling Dragon", "A magnificent pastel dragon that breathes sparkling cotton-candy stardust."),
             Pair("Cosmic Bunny", "Bounces higher than clouds and brings good fortune to team goals."),
-            Pair("Celestial Gryphon", "Shimmers with iridescent feathers and guards the oasis harmony."),
+            Pair("Celestial Gryphon", "Shimmers with iridescent feathers and guards the realm's harmony."),
             Pair("Rainbow Phoenix", "Flaps glowing wings that leave trails of warm confetti."),
             Pair("Starlight Kitty", "Purrs with melodic chimes and radiates pure team energy.")
         )
@@ -125,7 +125,7 @@ class OasisRepository(private val dao: OasisDao) {
 
         val nextStreak = if (rarity == PetRarity.LEGENDARY) meta.currentStreak + 1 else meta.currentStreak
 
-        dao.updateOasisMeta { current ->
+        dao.updateKnotMeta { current ->
             current.copy(
                 currentStreak = nextStreak,
                 eggCracks = 5,
@@ -142,7 +142,7 @@ class OasisRepository(private val dao: OasisDao) {
 
     suspend fun startNewIncubation() {
         dao.resetMemberTaskCounts()
-        dao.updateOasisMeta { meta ->
+        dao.updateKnotMeta { meta ->
             meta.copy(
                 eggCracks = 0,
                 eggState = "PULSING",
@@ -154,7 +154,7 @@ class OasisRepository(private val dao: OasisDao) {
     }
 
     suspend fun markTimerExpired() {
-        dao.updateOasisMeta { meta ->
+        dao.updateKnotMeta { meta ->
             if (meta.eggCracks < 5 && meta.eggState != "HATCHED") {
                 meta.copy(
                     eggState = "SLEEPING",
@@ -166,11 +166,11 @@ class OasisRepository(private val dao: OasisDao) {
     }
 
     suspend fun updateTimerSeconds(remaining: Int) {
-        dao.updateOasisMeta { meta -> meta.copy(timerSecondsRemaining = remaining) }
+        dao.updateKnotMeta { meta -> meta.copy(timerSecondsRemaining = remaining) }
     }
 
     suspend fun toggleTimerRunning(isRunning: Boolean) {
-        dao.updateOasisMeta { meta -> meta.copy(timerRunning = isRunning) }
+        dao.updateKnotMeta { meta -> meta.copy(timerRunning = isRunning) }
     }
 
     suspend fun setActiveUser(memberName: String) {
@@ -234,7 +234,7 @@ class OasisRepository(private val dao: OasisDao) {
             selectedGoals = selectedGoals.joinToString(","),
             activeGoalId = primaryGoalId,
             currentMode = "SQUAD",
-            squadCode = "OASIS-" + (1000..9999).random().toString(),
+            squadCode = "KNOT-" + (1000..9999).random().toString(),
             squadName = "Pastel Blossom Squad",
             level = 1,
             currentXp = 100,

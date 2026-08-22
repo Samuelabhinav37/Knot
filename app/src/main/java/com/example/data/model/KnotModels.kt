@@ -85,7 +85,7 @@ data class UserProfile(
     @PrimaryKey
     val id: Int = 1,
     val username: String = "Explorer",
-    val email: String = "explorer@oasis.app",
+    val email: String = "explorer@knot.app",
     val authProvider: String = "GOOGLE", // "GOOGLE", "APPLE", "EMAIL"
     val avatarEmoji: String = "🌸",
     val genderPronoun: String = "They/Them",
@@ -94,7 +94,7 @@ data class UserProfile(
     val selectedGoals: String = "Clothes Folding Mastery,15-Minute Meal Prep,Indoor Jungle Care",
     val activeGoalId: String = "goal_folding",
     val currentMode: String = "SQUAD", // "SOLO", "SQUAD"
-    val squadCode: String = "OASIS-7X29",
+    val squadCode: String = "KNOT-7X29",
     val squadName: String = "Pastel Cloud Squad",
     val level: Int = 1,
     val currentXp: Int = 240,
@@ -134,8 +134,8 @@ data class SkillTutorial(
     val iconEmoji: String
 )
 
-@Entity(tableName = "oasis_meta")
-data class OasisMeta(
+@Entity(tableName = "knot_meta")
+data class KnotMeta(
     @PrimaryKey
     val id: Int = 1,
     val currentStreak: Int = 3,

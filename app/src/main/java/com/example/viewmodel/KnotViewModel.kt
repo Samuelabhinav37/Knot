@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.audio.SoundEffectManager
 import com.example.data.local.AppDatabase
 import com.example.data.model.*
-import com.example.data.repository.OasisRepository
+import com.example.data.repository.KnotRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -26,7 +26,7 @@ enum class AppSeason(val displayName: String, val iconEmoji: String) {
     SUMMER("Lush Summer", "☀️"),
     AUTUMN("Golden Autumn", "🍂"),
     WINTER("Cozy Winter", "❄️"),
-    FESTIVAL("Oasis Gala", "🎉")
+    FESTIVAL("Knot Gala", "🎉")
 }
 
 enum class TimeOfDayTheme(val backgroundColor: Color) {
@@ -35,9 +35,9 @@ enum class TimeOfDayTheme(val backgroundColor: Color) {
     NIGHT(Color(0xFFF1F5F9))
 }
 
-class OasisViewModel(application: Application) : AndroidViewModel(application) {
+class KnotViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: OasisRepository
+    private val repository: KnotRepository
     private var timerJob: Job? = null
 
     // Flows from DB
@@ -46,7 +46,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
     val allMembers: StateFlow<List<GroupMember>>
     val allPets: StateFlow<List<HatchedPet>>
     val activeBuddyPet: StateFlow<HatchedPet?>
-    val oasisMeta: StateFlow<OasisMeta?>
+    val knotMeta: StateFlow<KnotMeta?>
     val userProfile: StateFlow<UserProfile?>
     val allBadges: StateFlow<List<BadgeItem>>
     val allTutorials: StateFlow<List<SkillTutorial>>
@@ -94,7 +94,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
     private val _showTourDialog = MutableStateFlow(false)
     val showTourDialog: StateFlow<Boolean> = _showTourDialog.asStateFlow()
 
-    // 0: Oasis Hub, 1: Pairwise Sort, 2: Skills & Guides, 3: Pet Paradise & Buddy
+    // 0: Knot Hub, 1: Pairwise Sort, 2: Skills & Guides, 3: Pet Paradise & Buddy
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
 
@@ -107,10 +107,10 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val db = AppDatabase.getDatabase(application, viewModelScope)
-        repository = OasisRepository(db.oasisDao())
+        repository = KnotRepository(db.knotDao())
 
         viewModelScope.launch(Dispatchers.IO) {
-            AppDatabase.seedIfEmpty(db.oasisDao())
+            AppDatabase.seedIfEmpty(db.knotDao())
         }
 
         allChores = repository.allChores.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -118,7 +118,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
         allMembers = repository.allMembers.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         allPets = repository.allPets.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         activeBuddyPet = repository.activeBuddy.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-        oasisMeta = repository.oasisMeta.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        knotMeta = repository.knotMeta.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         userProfile = repository.userProfile.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         allBadges = repository.allBadges.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         allTutorials = repository.allTutorials.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -169,7 +169,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
         timerJob = viewModelScope.launch {
             while (true) {
                 delay(1000)
-                val meta = oasisMeta.value ?: continue
+                val meta = knotMeta.value ?: continue
                 if (meta.timerRunning && meta.eggState == "PULSING") {
                     val remaining = meta.timerSecondsRemaining - 1
                     if (remaining <= 0) {
@@ -359,7 +359,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onEggTapped() {
         viewModelScope.launch {
-            val meta = oasisMeta.value ?: return@launch
+            val meta = knotMeta.value ?: return@launch
             if (meta.eggState == "PULSING") {
                 SoundEffectManager.playPop()
                 _confettiTrigger.value += 1
@@ -380,7 +380,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleTimer() {
-        val meta = oasisMeta.value ?: return
+        val meta = knotMeta.value ?: return
         viewModelScope.launch {
             repository.toggleTimerRunning(!meta.timerRunning)
             SoundEffectManager.playPop()
@@ -485,7 +485,7 @@ class OasisViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.completeOnboarding(
                 username = username,
-                email = "explorer@oasis.app",
+                email = "explorer@knot.app",
                 authProvider = "GOOGLE",
                 avatarEmoji = avatar,
                 genderPronoun = gender,

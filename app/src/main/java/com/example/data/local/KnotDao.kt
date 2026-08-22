@@ -5,7 +5,7 @@ import com.example.data.model.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface OasisDao {
+interface KnotDao {
 
     // --- Chores ---
     @Query("SELECT * FROM chores ORDER BY score DESC, createdAt ASC")
@@ -130,15 +130,15 @@ interface OasisDao {
     @Query("UPDATE skill_tutorials SET masteryLevel = MIN(4, masteryLevel + 1) WHERE id = :id")
     suspend fun levelUpSkill(id: String)
 
-    // --- Oasis Meta ---
-    @Query("SELECT * FROM oasis_meta WHERE id = 1")
-    fun getOasisMeta(): Flow<OasisMeta?>
+    // --- Knot Meta ---
+    @Query("SELECT * FROM knot_meta WHERE id = 1")
+    fun getKnotMeta(): Flow<KnotMeta?>
 
-    @Query("SELECT * FROM oasis_meta WHERE id = 1")
-    suspend fun getOasisMetaSync(): OasisMeta?
+    @Query("SELECT * FROM knot_meta WHERE id = 1")
+    suspend fun getKnotMetaSync(): KnotMeta?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveOasisMeta(meta: OasisMeta)
+    suspend fun saveKnotMeta(meta: KnotMeta)
 
     /**
      * Reads the current row and writes back the transformed copy inside a single DB
@@ -146,9 +146,9 @@ interface OasisDao {
      * snapshot and clobber the other's write.
      */
     @Transaction
-    suspend fun updateOasisMeta(mutate: (OasisMeta) -> OasisMeta) {
-        val current = getOasisMetaSync() ?: OasisMeta()
-        saveOasisMeta(mutate(current))
+    suspend fun updateKnotMeta(mutate: (KnotMeta) -> KnotMeta) {
+        val current = getKnotMetaSync() ?: KnotMeta()
+        saveKnotMeta(mutate(current))
     }
 
     // --- Chore completion (atomic: marks chore done, awards XP once, updates egg + level) ---
@@ -163,10 +163,10 @@ interface OasisDao {
 
         chore?.tutorialId?.let { tutId -> levelUpSkill(tutId) }
 
-        val meta = getOasisMetaSync() ?: OasisMeta()
+        val meta = getKnotMetaSync() ?: KnotMeta()
         val updatedCracks = (meta.eggCracks + 1).coerceAtMost(5)
         val shouldHatch = updatedCracks >= 5
-        saveOasisMeta(
+        saveKnotMeta(
             meta.copy(
                 eggCracks = updatedCracks,
                 eggState = if (shouldHatch) "HATCHED" else "PULSING"

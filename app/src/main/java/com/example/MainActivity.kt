@@ -35,11 +35,11 @@ import com.example.audio.SoundEffectManager
 import com.example.ui.components.*
 import com.example.ui.screens.*
 import com.example.ui.theme.*
-import com.example.viewmodel.OasisViewModel
+import com.example.viewmodel.KnotViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: OasisViewModel by viewModels()
+    private val viewModel: KnotViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,17 +47,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
-                PastelOasisApp(viewModel = viewModel)
+                KnotApp(viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun PastelOasisApp(viewModel: OasisViewModel) {
+fun KnotApp(viewModel: KnotViewModel) {
     val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
-    val meta by viewModel.oasisMeta.collectAsStateWithLifecycle()
+    val meta by viewModel.knotMeta.collectAsStateWithLifecycle()
     val coreFive by viewModel.coreFiveChores.collectAsStateWithLifecycle()
     val allChores by viewModel.allChores.collectAsStateWithLifecycle()
     val members by viewModel.allMembers.collectAsStateWithLifecycle()
@@ -123,7 +123,7 @@ fun PastelOasisApp(viewModel: OasisViewModel) {
                     .padding(innerPadding)
             ) {
                 when (selectedTab) {
-                    0 -> OasisHomeScreen(
+                    0 -> KnotHomeScreen(
                         meta = meta,
                         userProfile = userProfile,
                         currentSeason = currentSeason,

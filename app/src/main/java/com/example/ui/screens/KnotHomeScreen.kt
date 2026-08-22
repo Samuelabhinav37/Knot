@@ -35,8 +35,8 @@ import com.example.ui.theme.*
 import com.example.viewmodel.AppSeason
 
 @Composable
-fun OasisHomeScreen(
-    meta: OasisMeta?,
+fun KnotHomeScreen(
+    meta: KnotMeta?,
     userProfile: UserProfile?,
     currentSeason: AppSeason,
     coreFive: List<ChoreItem>,

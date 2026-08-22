@@ -103,7 +103,7 @@ fun ThoughtBubbleDialog(
                 }
 
                 Text(
-                    text = "Share chore ideas! The oasis will magically standardize phrasing with cute cartoon icons.",
+                    text = "Share chore ideas! Knot will magically standardize phrasing with cute cartoon icons.",
                     fontSize = 12.sp,
                     color = SlateMuted,
                     modifier = Modifier.padding(vertical = 6.dp)

@@ -1,5 +1,5 @@
 {
-  "name": "Oasis",
+  "name": "Knot",
   "description": "A calm, composed corporate workspace for daily routines, squad goals, cadre team collaboration, and zen productivity guides.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Pastel Oasis"
+rootProject.name = "Knot"
 
 include(":app")

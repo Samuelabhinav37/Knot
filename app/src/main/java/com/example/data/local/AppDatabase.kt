@@ -45,17 +45,17 @@ class Converters {
         ChoreItem::class,
         GroupMember::class,
         HatchedPet::class,
-        OasisMeta::class,
+        KnotMeta::class,
         UserProfile::class,
         BadgeItem::class,
         SkillTutorial::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun oasisDao(): OasisDao
+    abstract fun knotDao(): KnotDao
 
     companion object {
         @Volatile
@@ -66,11 +66,11 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "pastel_oasis_database"
+                    "knot_database"
                 )
                 // TODO: replace with real Migration(s) before release - this wipes all
                 // local chores/pets/streaks on every schema version bump. Schema is now
-                // exported to app/schemas so a Migration can be written against v2.
+                // exported to app/schemas so a Migration can be written against v2/v3.
                 .fallbackToDestructiveMigration(dropAllTables = false)
                 .build()
                 INSTANCE = instance
@@ -78,19 +78,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        suspend fun seedIfEmpty(dao: OasisDao) {
+        suspend fun seedIfEmpty(dao: KnotDao) {
             val existing = dao.getUserProfileSync()
             if (existing != null) return
             populateInitialData(dao)
         }
 
-        private suspend fun populateInitialData(dao: OasisDao) {
+        private suspend fun populateInitialData(dao: KnotDao) {
                 // Seed User Profile
                 dao.saveUserProfile(
                     UserProfile(
                         id = 1,
                         username = "Mia",
-                        email = "mia@pastel-oasis.app",
+                        email = "mia@knot.app",
                         authProvider = "GOOGLE",
                         avatarEmoji = "🌸",
                         genderPronoun = "She/Her",
@@ -99,7 +99,7 @@ abstract class AppDatabase : RoomDatabase() {
                         selectedGoals = "Clothes Folding Mastery,15-Minute Meal Prep,Indoor Jungle Care",
                         activeGoalId = "goal_folding",
                         currentMode = "SQUAD",
-                        squadCode = "OASIS-7X29",
+                        squadCode = "KNOT-7X29",
                         squadName = "Pastel Cloud Squad",
                         level = 2,
                         currentXp = 340,
@@ -470,9 +470,9 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 dao.insertPets(defaultPets)
 
-                // Seed Oasis Meta
-                dao.saveOasisMeta(
-                    OasisMeta(
+                // Seed Knot Meta
+                dao.saveKnotMeta(
+                    KnotMeta(
                         id = 1,
                         currentStreak = 4,
                         timerSecondsRemaining = 240,
