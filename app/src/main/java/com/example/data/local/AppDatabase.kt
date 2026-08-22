@@ -51,7 +51,7 @@ class Converters {
         SkillTutorial::class
     ],
     version = 2,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -68,7 +68,10 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pastel_oasis_database"
                 )
-                .fallbackToDestructiveMigration()
+                // TODO: replace with real Migration(s) before release - this wipes all
+                // local chores/pets/streaks on every schema version bump. Schema is now
+                // exported to app/schemas so a Migration can be written against v2.
+                .fallbackToDestructiveMigration(dropAllTables = false)
                 .build()
                 INSTANCE = instance
                 instance

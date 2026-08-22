@@ -137,3 +137,10 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+// Exports Room schema JSON per version so future version bumps can get a real
+// Migration written against a known baseline, instead of relying on
+// fallbackToDestructiveMigration to silently wipe local user data.
+ksp {
+  arg("room.schemaLocation", "$projectDir/schemas")
+}

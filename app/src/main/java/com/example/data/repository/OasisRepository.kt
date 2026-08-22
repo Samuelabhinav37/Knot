@@ -59,44 +59,7 @@ class OasisRepository(private val dao: OasisDao) {
     }
 
     suspend fun completeChore(choreId: Long, completedBy: String): Pair<Int, Boolean> {
-        val now = System.currentTimeMillis()
-        val chore = dao.getChoreById(choreId)
-        val xpGain = chore?.difficulty?.xp ?: 100
-
-        dao.markChoreCompleted(choreId, completedBy, now)
-        dao.incrementMemberTaskCount(completedBy)
-        dao.addXp(xpGain)
-
-        // Check if completing this chore levels up a linked skill tutorial
-        chore?.tutorialId?.let { tutId ->
-            dao.levelUpSkill(tutId)
-        }
-
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
-        val updatedCracks = (meta.eggCracks + 1).coerceAtMost(5)
-        val shouldHatch = updatedCracks >= 5
-
-        dao.saveOasisMeta(
-            meta.copy(
-                eggCracks = updatedCracks,
-                eggState = if (shouldHatch) "HATCHED" else "PULSING"
-            )
-        )
-
-        // Check for badge unlocks
-        val profile = dao.getUserProfileSync()
-        if (profile != null) {
-            val totalXp = profile.currentXp + xpGain
-            val newLevel = (totalXp / 500) + 1
-            dao.saveUserProfile(
-                profile.copy(
-                    currentXp = totalXp,
-                    level = newLevel
-                )
-            )
-        }
-
-        return Pair(updatedCracks, shouldHatch)
+        return dao.completeChoreTx(choreId, completedBy)
     }
 
     suspend fun attachProofOfWork(choreId: Long, beforeUri: String?, afterUri: String?) {
@@ -162,14 +125,14 @@ class OasisRepository(private val dao: OasisDao) {
 
         val nextStreak = if (rarity == PetRarity.LEGENDARY) meta.currentStreak + 1 else meta.currentStreak
 
-        dao.saveOasisMeta(
-            meta.copy(
+        dao.updateOasisMeta { current ->
+            current.copy(
                 currentStreak = nextStreak,
                 eggCracks = 5,
                 eggState = "HATCHED",
                 latestHatchedPetId = petId
             )
-        )
+        }
 
         // Check badge unlocks
         dao.unlockBadge("badge_squad_legend")
@@ -178,9 +141,8 @@ class OasisRepository(private val dao: OasisDao) {
     }
 
     suspend fun startNewIncubation() {
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
         dao.resetMemberTaskCounts()
-        dao.saveOasisMeta(
+        dao.updateOasisMeta { meta ->
             meta.copy(
                 eggCracks = 0,
                 eggState = "PULSING",
@@ -188,30 +150,27 @@ class OasisRepository(private val dao: OasisDao) {
                 timerRunning = true,
                 latestHatchedPetId = null
             )
-        )
+        }
     }
 
     suspend fun markTimerExpired() {
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
-        if (meta.eggCracks < 5 && meta.eggState != "HATCHED") {
-            dao.saveOasisMeta(
+        dao.updateOasisMeta { meta ->
+            if (meta.eggCracks < 5 && meta.eggState != "HATCHED") {
                 meta.copy(
                     eggState = "SLEEPING",
                     timerRunning = false,
                     timerSecondsRemaining = 0
                 )
-            )
+            } else meta
         }
     }
 
     suspend fun updateTimerSeconds(remaining: Int) {
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
-        dao.saveOasisMeta(meta.copy(timerSecondsRemaining = remaining))
+        dao.updateOasisMeta { meta -> meta.copy(timerSecondsRemaining = remaining) }
     }
 
     suspend fun toggleTimerRunning(isRunning: Boolean) {
-        val meta = dao.getOasisMetaSync() ?: OasisMeta()
-        dao.saveOasisMeta(meta.copy(timerRunning = isRunning))
+        dao.updateOasisMeta { meta -> meta.copy(timerRunning = isRunning) }
     }
 
     suspend fun setActiveUser(memberName: String) {

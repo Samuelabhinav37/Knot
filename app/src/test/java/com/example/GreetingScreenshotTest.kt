@@ -5,8 +5,10 @@ import androidx.compose.ui.test.onRoot
 import com.example.data.model.ChoreItem
 import com.example.data.model.GroupMember
 import com.example.data.model.OasisMeta
+import com.example.data.model.UserProfile
 import com.example.ui.screens.OasisHomeScreen
 import com.example.ui.theme.MyApplicationTheme
+import com.example.viewmodel.AppSeason
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
@@ -29,6 +31,8 @@ class GreetingScreenshotTest {
       MyApplicationTheme {
         OasisHomeScreen(
           meta = OasisMeta(),
+          userProfile = UserProfile(),
+          currentSeason = AppSeason.SPRING,
           coreFive = listOf(
             ChoreItem(text = "Sparkle Kitchen Dishes", iconCategory = "KITCHEN", postedBy = "Mia")
           ),
@@ -36,10 +40,17 @@ class GreetingScreenshotTest {
             GroupMember(name = "Mia", avatarEmoji = "🌸", avatarColorHex = 0xFFFFB6C1, isCurrentActiveUser = true)
           ),
           latestPet = null,
+          taskFilter = "",
+          onSelectTaskFilter = {},
           onTapEgg = {},
           onCompleteChore = { _, _, _ -> },
+          onOpenPhotoProof = {},
+          onOpenTutorial = {},
           onSwitchMember = {},
           onOpenThoughtBubble = {},
+          onOpenSquadRoom = {},
+          onOpenBadges = {},
+          onOpenSettings = {},
           onStartNewEgg = {},
           onToggleTimer = {},
           onResetTimer = {},

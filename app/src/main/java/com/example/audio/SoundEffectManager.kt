@@ -6,6 +6,7 @@ import android.media.AudioTrack
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.sin
 
@@ -107,7 +108,8 @@ object SoundEffectManager {
         }
     }
 
-    private fun playBuffer(buffer: ShortArray) {
+    private suspend fun playBuffer(buffer: ShortArray) {
+        var audioTrack: AudioTrack? = null
         try {
             val minBufferSize = AudioTrack.getMinBufferSize(
                 SAMPLE_RATE,
@@ -120,7 +122,7 @@ object SoundEffectManager {
                 buffer.size * 2
             }
 
-            val audioTrack = AudioTrack.Builder()
+            audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_GAME)
@@ -141,22 +143,18 @@ object SoundEffectManager {
             val written = audioTrack.write(buffer, 0, buffer.size)
             if (written > 0 && audioTrack.state == AudioTrack.STATE_INITIALIZED) {
                 audioTrack.play()
-                audioTrack.setNotificationMarkerPosition(buffer.size)
-                audioTrack.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-                    override fun onMarkerReached(track: AudioTrack?) {
-                        try {
-                            track?.release()
-                        } catch (_: Throwable) {}
-                    }
-                    override fun onPeriodicNotification(track: AudioTrack?) {}
-                })
-            } else {
-                try {
-                    audioTrack.release()
-                } catch (_: Throwable) {}
+                // Block this coroutine (not a Looper thread) until playback finishes, then
+                // release deterministically below - a marker listener would silently never
+                // fire here since Dispatchers.Default threads have no prepared Looper.
+                val playbackMs = (buffer.size * 1000L / SAMPLE_RATE) + 50
+                delay(playbackMs)
             }
         } catch (_: Throwable) {
             // Audio output device not available in certain emulator container configurations
+        } finally {
+            try {
+                audioTrack?.release()
+            } catch (_: Throwable) {}
         }
     }
 }

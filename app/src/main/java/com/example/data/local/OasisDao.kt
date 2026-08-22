@@ -139,4 +139,48 @@ interface OasisDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveOasisMeta(meta: OasisMeta)
+
+    /**
+     * Reads the current row and writes back the transformed copy inside a single DB
+     * transaction, so a concurrent chore completion/timer tick can't read a stale
+     * snapshot and clobber the other's write.
+     */
+    @Transaction
+    suspend fun updateOasisMeta(mutate: (OasisMeta) -> OasisMeta) {
+        val current = getOasisMetaSync() ?: OasisMeta()
+        saveOasisMeta(mutate(current))
+    }
+
+    // --- Chore completion (atomic: marks chore done, awards XP once, updates egg + level) ---
+    @Transaction
+    suspend fun completeChoreTx(choreId: Long, completedBy: String): Pair<Int, Boolean> {
+        val chore = getChoreById(choreId)
+        val xpGain = chore?.difficulty?.xp ?: 100
+
+        markChoreCompleted(choreId, completedBy, System.currentTimeMillis())
+        incrementMemberTaskCount(completedBy)
+        addXp(xpGain)
+
+        chore?.tutorialId?.let { tutId -> levelUpSkill(tutId) }
+
+        val meta = getOasisMetaSync() ?: OasisMeta()
+        val updatedCracks = (meta.eggCracks + 1).coerceAtMost(5)
+        val shouldHatch = updatedCracks >= 5
+        saveOasisMeta(
+            meta.copy(
+                eggCracks = updatedCracks,
+                eggState = if (shouldHatch) "HATCHED" else "PULSING"
+            )
+        )
+
+        val profile = getUserProfileSync()
+        if (profile != null) {
+            val newLevel = (profile.currentXp / 500) + 1
+            if (newLevel != profile.level) {
+                saveUserProfile(profile.copy(level = newLevel))
+            }
+        }
+
+        return updatedCracks to shouldHatch
+    }
 }
