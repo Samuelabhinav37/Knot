@@ -1,6 +1,6 @@
 {
-  "name": "Knot",
-  "description": "A calm, composed corporate workspace for daily routines, squad goals, cadre team collaboration, and zen productivity guides.",
+  "name": "Oasis",
+  "description": "A warm, inspiring daily rhythm workspace with YouVersion-style focus, squad collaboration, daily routines, and mindful productivity intervals.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

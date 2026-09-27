@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,8 @@ import com.example.data.model.GroupMember
 import com.example.data.model.HatchedPet
 import com.example.data.model.PetAccessory
 import com.example.data.model.UserProfile
+import com.example.ui.components.rememberZenSpringFlingBehavior
+import com.example.ui.components.springPress
 import com.example.ui.theme.*
 
 @Composable
@@ -49,8 +52,8 @@ fun PetParadiseScreen(
 ) {
     val userName = userProfile?.username ?: "Alex Morgan"
     val userArchetype = userProfile?.personalityArchetype ?: "Operations Strategist"
-    val squadName = userProfile?.squadName ?: "Cadre Unit Alpha"
-    val squadCode = userProfile?.squadCode ?: "CADRE-8X9"
+    val squadName = userProfile?.squadName ?: "Alpha Squad"
+    val squadCode = userProfile?.squadCode ?: "SQUAD-8X9"
 
     var soundEnabled by remember { mutableStateOf(true) }
     var dailyReminders by remember { mutableStateOf(true) }
@@ -62,7 +65,8 @@ fun PetParadiseScreen(
             .background(CorporateBg)
             .padding(horizontal = 20.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        flingBehavior = rememberZenSpringFlingBehavior()
     ) {
         // Header with Name & Settings Icon on Top Right
         item {
@@ -112,9 +116,20 @@ fun PetParadiseScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(CorporateSurface)
-                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
+                    .springPress(pressScale = 0.985f)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF1C1E28), Color(0xFF13141C))
+                        )
+                    )
+                    .border(
+                        1.dp,
+                        Brush.verticalGradient(
+                            listOf(Color(0x35FFFFFF), Color(0x0CFFFFFF))
+                        ),
+                        RoundedCornerShape(22.dp)
+                    )
                     .padding(18.dp)
             ) {
                 Row(
@@ -124,9 +139,14 @@ fun PetParadiseScreen(
                     // Profile Initials / Avatar Circle
                     Box(
                         modifier = Modifier
-                            .size(54.dp)
+                            .size(56.dp)
                             .clip(CircleShape)
-                            .background(CorporatePrimary),
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xFF2E2E3E), Color(0xFF1E1E28))
+                                )
+                            )
+                            .border(1.5.dp, Color(0x33FFFFFF), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -142,7 +162,7 @@ fun PetParadiseScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = userName,
-                            fontSize = 16.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
@@ -152,12 +172,13 @@ fun PetParadiseScreen(
                             fontSize = 13.sp,
                             color = TextMuted
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(CorporateAccentBlueLight)
+                                    .border(0.8.dp, CorporateAccentBlue.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
@@ -198,9 +219,9 @@ fun PetParadiseScreen(
                     modifier = Modifier.weight(1f)
                 )
                 AccountMetricCard(
-                    label = "Cadre Members",
+                    label = "Squad Members",
                     value = "${members.size.coerceAtLeast(3)}",
-                    caption = "In your unit",
+                    caption = "In your squad",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -221,10 +242,20 @@ fun PetParadiseScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(CorporateSurface)
-                    .border(1.dp, CorporateCardBorder, RoundedCornerShape(16.dp))
-                    .padding(16.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF1C1E28), Color(0xFF13141C))
+                        )
+                    )
+                    .border(
+                        1.dp,
+                        Brush.verticalGradient(
+                            listOf(Color(0x35FFFFFF), Color(0x0CFFFFFF))
+                        ),
+                        RoundedCornerShape(22.dp)
+                    )
+                    .padding(18.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     PreferenceToggleRow(
@@ -306,10 +337,21 @@ private fun AccountMetricCard(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(CorporateSurface)
-            .border(1.dp, CorporateCardBorder, RoundedCornerShape(14.dp))
-            .padding(12.dp)
+            .springPress(pressScale = 0.94f)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF1E202B), Color(0xFF14151E))
+                )
+            )
+            .border(
+                1.dp,
+                Brush.verticalGradient(
+                    listOf(Color(0x35FFFFFF), Color(0x0CFFFFFF))
+                ),
+                RoundedCornerShape(16.dp)
+            )
+            .padding(14.dp)
     ) {
         Column {
             Text(
@@ -321,14 +363,14 @@ private fun AccountMetricCard(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
-                fontSize = 18.sp,
+                fontSize = 19.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = caption,
-                fontSize = 10.sp,
+                fontSize = 10.5.sp,
                 color = TextMuted
             )
         }
@@ -392,8 +434,8 @@ private fun PreferenceToggleRow(
             },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = CorporatePrimary,
-                uncheckedThumbColor = Color.White,
+                checkedTrackColor = CorporateAccentBlue,
+                uncheckedThumbColor = TextDisabled,
                 uncheckedTrackColor = CorporateCardBorder
             )
         )

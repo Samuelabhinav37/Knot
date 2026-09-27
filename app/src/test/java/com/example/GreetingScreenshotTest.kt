@@ -4,11 +4,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.example.data.model.ChoreItem
 import com.example.data.model.GroupMember
-import com.example.data.model.KnotMeta
-import com.example.data.model.UserProfile
-import com.example.ui.screens.KnotHomeScreen
+import com.example.data.model.OasisMeta
+import com.example.ui.screens.OasisHomeScreen
 import com.example.ui.theme.MyApplicationTheme
-import com.example.viewmodel.AppSeason
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
@@ -29,18 +27,18 @@ class GreetingScreenshotTest {
   fun greeting_screenshot() {
     composeTestRule.setContent {
       MyApplicationTheme {
-        KnotHomeScreen(
-          meta = KnotMeta(),
-          userProfile = UserProfile(),
-          currentSeason = AppSeason.SPRING,
+        OasisHomeScreen(
+          meta = OasisMeta(),
+          userProfile = null,
+          currentSeason = com.example.viewmodel.AppSeason.SPRING,
           coreFive = listOf(
-            ChoreItem(text = "Sparkle Kitchen Dishes", iconCategory = "KITCHEN", postedBy = "Mia")
+            ChoreItem(text = "Organize workspace", iconCategory = "ORGANIZING", postedBy = "Alex")
           ),
           members = listOf(
-            GroupMember(name = "Mia", avatarEmoji = "🌸", avatarColorHex = 0xFFFFB6C1, isCurrentActiveUser = true)
+            GroupMember(name = "Alex", avatarEmoji = "👤", avatarColorHex = 0xFF0F172A, isCurrentActiveUser = true)
           ),
           latestPet = null,
-          taskFilter = "",
+          taskFilter = "ALL",
           onSelectTaskFilter = {},
           onTapEgg = {},
           onCompleteChore = { _, _, _ -> },
